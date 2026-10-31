@@ -30,6 +30,7 @@
 - **Share & backup · 分享与备份**：single-file `.tgshare` (watermarked or original quality) and `.tgbundle` full export · 单文件 `.tgshare`（水印版/原片版）与 `.tgbundle` 全量导出
 - **Category management · 分类管理**：recolor/re-icon built-ins, custom categories, 1:1 image pin icons · 内置分类改色换图标、自定义分类、1:1 图片 Pin 图标
 - **i18n · 中英双语**：587 entries, instant switching · 切换即时生效
+![输入图片说明](release_pics_show/0189eb17507c88c0f26425d8687ae395.png)
 
 ## Third-party runtime & large files — read before building · 第三方依赖与解码组件（构建前必读）
 
