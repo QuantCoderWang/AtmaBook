@@ -708,9 +708,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpsCoordTitle => 'GPS coordinates (WGS-84)';
 
   @override
-  String latNorth(String c) {
-    return 'Lat $c';
-  }
+  String get latNorth => 'N';
 
   @override
   String get latSouth => 'S';

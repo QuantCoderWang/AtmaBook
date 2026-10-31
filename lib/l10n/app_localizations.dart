@@ -1361,8 +1361,8 @@ abstract class AppLocalizations {
   /// No description provided for @latNorth.
   ///
   /// In zh, this message translates to:
-  /// **'北纬 {c}'**
-  String latNorth(String c);
+  /// **'北纬'**
+  String get latNorth;
 
   /// No description provided for @latSouth.
   ///

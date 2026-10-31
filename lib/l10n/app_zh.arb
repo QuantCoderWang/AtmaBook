@@ -505,8 +505,6 @@
   "sectionUnlocated": "未定位",
   "boundPrefix": "绑 {title} · ",
   "@boundPrefix": { "placeholders": { "title": { "type": "String" } } },
-  "latNorth": "北纬 {c}",
-  "@latNorth": { "placeholders": { "c": { "type": "String" } } },
   "noLocBindTip": "无定位（点击绑定标记）",
   "bindBtn": "绑定",
 

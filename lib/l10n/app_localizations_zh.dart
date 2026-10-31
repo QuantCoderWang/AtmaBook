@@ -681,9 +681,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsCoordTitle => 'GPS 坐标（WGS-84）';
 
   @override
-  String latNorth(String c) {
-    return '北纬 $c';
-  }
+  String get latNorth => '北纬';
 
   @override
   String get latSouth => '南纬';

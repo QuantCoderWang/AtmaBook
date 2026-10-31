@@ -438,7 +438,6 @@
   "photoListStats": "Photos {total} · located {located} · unlocated {unlocated}",
   "sectionUnlocated": "Unlocated",
   "boundPrefix": "bound to \"{title}\" · ",
-  "latNorth": "Lat {c}",
   "noLocBindTip": "No location (tap to bind a marker)",
   "bindBtn": "Bind",
 
