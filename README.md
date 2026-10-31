@@ -4,6 +4,8 @@
 >
 > 一款以地图为主画布的 Flutter 离线旅行攻略应用：图文标记游玩地点、自动聚类"必去"点生成游览片区与推荐路径、带 GPS 的照片与视频铺成地理相册、一键打包为单文件攻略与他人分享或作为永久备份。**全量数据仅存于本机，不依赖任何服务器、不注册任何账号，你永远不需要担心数据丢失或软件下架，运营商关闭。**
 
+![输入图片说明](release_pics_show/9d881d70d3158b25fb327e5262cc3da5.png)
+
 ![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20Android-blue) ![Flutter](https://img.shields.io/badge/Flutter-3.47%20stable-02569B?logo=flutter) ![Tests](https://img.shields.io/badge/flutter_test-114%20tests%20passed-brightgreen) ![i18n](https://img.shields.io/badge/languages-%E4%B8%AD%E6%96%87%20%2F%20English-green)
 
 - Package name: `atma_book` · Windows executable: `atma_book.exe` · Android applicationId: `com.example.atma_book`
