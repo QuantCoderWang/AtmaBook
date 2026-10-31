@@ -4,6 +4,8 @@
 >
 > 一款以地图为主画布的 Flutter 离线旅行攻略应用：图文标记游玩地点、自动聚类"必去"点生成游览片区与推荐路径、带 GPS 的照片与视频铺成地理相册、一键打包为单文件攻略与他人分享或作为永久备份。**全量数据仅存于本机，不依赖任何服务器、不注册任何账号，你永远不需要担心数据丢失或软件下架，运营商关闭。**
 
+![输入图片说明](release_pics_show/9d881d70d3158b25fb327e5262cc3da5.png)
+
 ![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20Android-blue) ![Flutter](https://img.shields.io/badge/Flutter-3.47%20stable-02569B?logo=flutter) ![Tests](https://img.shields.io/badge/flutter_test-114%20tests%20passed-brightgreen) ![i18n](https://img.shields.io/badge/languages-%E4%B8%AD%E6%96%87%20%2F%20English-green)
 
 - Package name: `atma_book` · Windows executable: `atma_book.exe` · Android applicationId: `com.example.atma_book`
@@ -19,12 +21,19 @@
 ## Highlights · 功能亮点
 
 - **Guide & map · 攻略与地图**：multiple keyless basemaps + offline tile packs · 多种免密钥底图与离线瓦片包；long-press markers with photos/links/categories · 长按添加图文标记
+![输入图片说明](release_pics_show/f3f5cae6ff1d1e16659423c1e4d42813.png)
 - **Touring areas · 片区与路径**：DBSCAN clustering of must-visit points + 2-opt/OSRM routes · "必去"点聚类成片区，最近邻 + 2-opt 优化、OSRM 路网吸附
-- **Geo album · 地理相册**：geotagged photos & videos, auto-assignment, map photo wall with yearly slider · 照片/视频自动归属、地图照片墙与年轴滑轨
+![输入图片说明](release_pics_show/cac8db920561066aed51060b5ea364bf.png)
+- **Geo album · 地理相册**：geotagged photos & videos, auto-assignment, map photo wall · 照片/视频自动归属、地图照片墙
+![输入图片说明](release_pics_show/dbaa498371b1336aad9a637904a19f6c.png)
 - **Guide notes · 攻略笔记**：auto-generated readable itinerary, zero extra storage · 自动生成可通读行程文档，零新增存储
+![输入图片说明](release_pics_show/32a1ef1377522e9ddae455d4abf4e8ea.png)
 - **Share & backup · 分享与备份**：single-file `.tgshare` (watermarked or original quality) and `.tgbundle` full export · 单文件 `.tgshare`（水印版/原片版）与 `.tgbundle` 全量导出
+![输入图片说明](release_pics_show/f6e184fa10b591f8663e17883ed182bd.png)
 - **Category management · 分类管理**：recolor/re-icon built-ins, custom categories, 1:1 image pin icons · 内置分类改色换图标、自定义分类、1:1 图片 Pin 图标
+![输入图片说明](release_pics_show/23059046c1eef04a0498aee8a7098a90.png)
 - **i18n · 中英双语**：587 entries, instant switching · 切换即时生效
+![输入图片说明](release_pics_show/0189eb17507c88c0f26425d8687ae395.png)
 
 ## Third-party runtime & large files — read before building · 第三方依赖与解码组件（构建前必读）
 
