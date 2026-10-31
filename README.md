@@ -23,11 +23,13 @@
 - **Guide & map · 攻略与地图**：multiple keyless basemaps + offline tile packs · 多种免密钥底图与离线瓦片包；long-press markers with photos/links/categories · 长按添加图文标记
 ![输入图片说明](release_pics_show/f3f5cae6ff1d1e16659423c1e4d42813.png)
 - **Touring areas · 片区与路径**：DBSCAN clustering of must-visit points + 2-opt/OSRM routes · "必去"点聚类成片区，最近邻 + 2-opt 优化、OSRM 路网吸附
+![输入图片说明](release_pics_show/cac8db920561066aed51060b5ea364bf.png)
 - **Geo album · 地理相册**：geotagged photos & videos, auto-assignment, map photo wall · 照片/视频自动归属、地图照片墙
-
+![输入图片说明](release_pics_show/dbaa498371b1336aad9a637904a19f6c.png)
 - **Guide notes · 攻略笔记**：auto-generated readable itinerary, zero extra storage · 自动生成可通读行程文档，零新增存储
 ![输入图片说明](release_pics_show/32a1ef1377522e9ddae455d4abf4e8ea.png)
 - **Share & backup · 分享与备份**：single-file `.tgshare` (watermarked or original quality) and `.tgbundle` full export · 单文件 `.tgshare`（水印版/原片版）与 `.tgbundle` 全量导出
+![输入图片说明](release_pics_show/f6e184fa10b591f8663e17883ed182bd.png)
 - **Category management · 分类管理**：recolor/re-icon built-ins, custom categories, 1:1 image pin icons · 内置分类改色换图标、自定义分类、1:1 图片 Pin 图标
 - **i18n · 中英双语**：587 entries, instant switching · 切换即时生效
 ![输入图片说明](release_pics_show/0189eb17507c88c0f26425d8687ae395.png)
