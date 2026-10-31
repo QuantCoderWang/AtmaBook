@@ -21,6 +21,7 @@
 ## Highlights · 功能亮点
 
 - **Guide & map · 攻略与地图**：multiple keyless basemaps + offline tile packs · 多种免密钥底图与离线瓦片包；long-press markers with photos/links/categories · 长按添加图文标记
+![输入图片说明](release_pics_show/f3f5cae6ff1d1e16659423c1e4d42813.png)
 - **Touring areas · 片区与路径**：DBSCAN clustering of must-visit points + 2-opt/OSRM routes · "必去"点聚类成片区，最近邻 + 2-opt 优化、OSRM 路网吸附
 - **Geo album · 地理相册**：geotagged photos & videos, auto-assignment, map photo wall with yearly slider · 照片/视频自动归属、地图照片墙与年轴滑轨
 - **Guide notes · 攻略笔记**：auto-generated readable itinerary, zero extra storage · 自动生成可通读行程文档，零新增存储
