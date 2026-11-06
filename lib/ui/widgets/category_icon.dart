@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 import '../../core/constants.dart';
 import '../../services/media_store.dart';
 
-/// 分类图标显示：分类配置了自定义图片（[MarkerCategory.image]，
-/// 来自设置页「分类管理 → 上传图片图标」）时**圆裁等尺寸**显示图片，
+/// 分类图标显示：分类配了自定义图片（[MarkerCategory.image]，
+/// 来自设置页「分类管理 → 上传图片图标」）就圆裁等尺寸显示图片，
 /// 否则回退内置 [MarkerCategory.icon]。
 ///
-/// 与 [PinWidget] 的图片渲染同口径（圆 + BoxFit.cover + 同尺寸盒），
-/// 保证「图片替代 Pin 图标」不产生大小差；全部分类图标读取点
-/// （图例 / 标记抽屉 / 标记编辑 / 笔记 / 详情弹层 / 设置卡）
-/// 统一使用组件，避免「地图换了图、其他界面仍是内置图标」的分叉。
+/// 渲染方式和 [PinWidget] 的图片一致（圆 + BoxFit.cover + 同尺寸盒），
+/// 这样换图不会出现大小差。
+/// 图例、标记抽屉、标记编辑、笔记、详情弹层、设置卡都走这个组件，
+/// 地图换了图，其他地方也同步。
 class CategoryIcon extends StatelessWidget {
   const CategoryIcon({
     super.key,

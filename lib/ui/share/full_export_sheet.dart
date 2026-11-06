@@ -12,11 +12,11 @@ import '../../services/share_bundle_service.dart';
 import '../../services/share_service.dart';
 import '../../state/guides_provider.dart';
 
-/// 全量导出弹窗：攻略本全体攻略逐个按原片模式打包成**单个** `.tgbundle`
+/// 全量导出弹窗：把攻略本里所有攻略逐个按原片模式打包成单个 `.tgbundle`
 /// 大包（迁移文件 / 多设备共享用）。
-/// - 概览（攻略篇数 + 口径说明）→ 进度（k/n 篇 + 当前标题，可取消）→ 完成路径；
-/// - 不限制总体积（1 GB 上限仅作用于单包分享），Web 不可用（无文件系统）；
-/// - 内容 = 封面 + 标记插图 + 攻略内照片 + 账本归属照片/视频（全部原画质直通）。
+/// 概览（攻略篇数 + 规则说明）→ 进度（k/n 篇 + 当前标题，可取消）→ 完成路径；
+/// 不限总体积（1 GB 上限只作用于单包分享），Web 不可用（没有文件系统）；
+/// 内容 = 封面 + 标记插图 + 攻略内照片 + 账本归属照片/视频（全部原画质直通）。
 Future<void> openFullExportSheet(BuildContext context) {
   return showModalBottomSheet(
     context: context,

@@ -18,6 +18,7 @@ import '../../data/repos/tile_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/tile_downloader.dart';
 import '../../state/settings_provider.dart';
+
 /// 新建离线下载向导：
 /// 选源（含天地图 tk 校验）→ 框选范围 → 缩放级别 → 确认 →
 /// 真实下载 → pack.json 落盘

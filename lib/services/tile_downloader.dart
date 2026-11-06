@@ -70,7 +70,7 @@ class TileDownloader {
   final int retries;
 
   /// 单瓦片 URL（含 subdomain 轮询与天地图 tk 注入；
-  /// GCJ 源的瓦片行列号须传入**已换算**的 z/x/y）
+  /// GCJ 源的瓦片行列号要传换算后的 z/x/y）
   String tileUrl(int z, int x, int y, int variant) {
     var url = source.urlTemplate;
     if (source.subdomains.isNotEmpty) {
@@ -90,7 +90,7 @@ class TileDownloader {
   String relOf(String packId, TileCoord t, String ext) =>
       'tiles/$packId/${t.z}/${t.x}/${t.y}.$ext';
 
-  /// 下载前连通性探测（M5 补充）：取一片真实瓦片，报告可达性/耗时。
+  /// 下载前连通性探测：取一片真实瓦片，报告可达性/耗时。
   /// 返回 `(ok, httpStatus, elapsedMs)`；异常时 status = -1。
   static Future<(bool, int, int)> probe(
     MapSource source,

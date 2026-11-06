@@ -5,11 +5,11 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 
-/// 分享图片水印合成器（分享功能）：
-/// - 缩放与 JPEG 编码走 `image` 包（纯 Dart，任何 isolate 可用）；
-/// - 中文文字水印走 Flutter 引擎 [TextPainter]（image 包位图字体画不了中文）：
-///   半透明白字 + 黑描边阴影，绘制在左下角，随图宽自适应字号；
-/// - 输入原始图片字节 → 输出已缩放、已烧水印的 JPEG 字节（不可逆）。
+/// 分享图片水印合成器。
+/// 缩放和 JPEG 编码交给 `image` 包（纯 Dart，任何 isolate 都能跑）；
+/// 中文水印用 Flutter 引擎的 [TextPainter] 画
+/// （image 包的位图字体画不了中文）：
+/// 半透明白字 + 黑描边，落在左下角，字号随图宽自适应，输出不可逆。
 class WatermarkComposer {
   WatermarkComposer._();
 
@@ -22,7 +22,7 @@ class WatermarkComposer {
     required int quality,
   }) async {
     try {
-      // —— 缩放（image 包）——
+      // 缩放（image 包）
       final decoded = img.decodeImage(srcBytes);
       if (decoded == null) return null;
       var out = decoded;
@@ -42,7 +42,7 @@ class WatermarkComposer {
       final frame = await codec.getNextFrame();
       final image = frame.image;
 
-      // —— 合成水印（引擎画布）——
+      // 合成水印（引擎画布）
       final recorder = ui.PictureRecorder();
       final canvas = ui.Canvas(recorder);
       canvas.drawImage(image, Offset.zero, Paint());
@@ -53,7 +53,7 @@ class WatermarkComposer {
       final picture = recorder.endRecording();
       final composed = await picture.toImage(image.width, image.height);
 
-      // —— 引擎画布 → JPEG（rawRgba 回填 image 包编码）——
+      // 引擎画布 → JPEG（rawRgba 回填 image 包编码）
       final data = await composed.toByteData(
           format: ui.ImageByteFormat.rawRgba);
       if (data == null) return null;
@@ -76,7 +76,7 @@ class WatermarkComposer {
   }
 
   /// 整版透明水印 PNG（视频链路使用）：
-  /// 与照片同一套 45° 平铺算法画在**透明画布**上，编码为 PNG（保 alpha）——
+  /// 和照片同一套 45° 平铺算法画在透明画布上，编码为 PNG（保留 alpha）——
   /// 由 ffmpeg `overlay` 一次性叠加到转码后的每一帧（中文由引擎绘制，无字体痛点）。
   /// 返回 PNG 字节；失败返回 null（调用方跳过水印仅转码）。
   static Future<Uint8List?> tiledOverlayPng({
@@ -109,9 +109,9 @@ class WatermarkComposer {
     }
   }
 
-  /// —— 45° 平铺水印公共绘制（照片/视频共用同一算法与参数）——
-  /// 版本修改：
-  /// 1、字号 = **画幅短边 × 10%**（防滥用要求的显著字号）；
+  /// 45° 平铺水印公共绘制（照片/视频共用同一算法与参数）：
+  /// 几个参数约定：
+  /// 1、字号 = 画幅短边 × 10%（防滥用要求的显著字号）；
   /// 2、网格基线密度由画幅（对角线 × 0.16）决定，文字加宽时间距随之加宽防重贴；
   /// 3、透明度 白 22% / 黑描边 22%；
   /// 4、覆盖范围 = 旋转 45° 后包围盒半径 (w+h)·√2/4，边缘零漏铺。

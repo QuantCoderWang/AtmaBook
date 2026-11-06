@@ -299,7 +299,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  /// 一键清空确认（新增危险操作）：明确不可恢复提示后执行 removeAll
+  /// 一键清空确认：明确不可恢复提示后执行 removeAll
   Future<void> _confirmClearGuides() async {
     final t = AppLocalizations.of(context);
     final ok = await showDialog<bool>(

@@ -7,13 +7,13 @@ import 'ffmpeg_runner.dart';
 import 'watermark.dart';
 
 /// 分享导出视频转码器：
-/// 原视频（最高 4K）→ **≤720p H.264 + 斜向平铺水印** → mp4 字节入 `.tgshare`。
+/// 原视频（最高 4K）→ ≤720p H.264 + 斜向平铺水印 → mp4 字节入 `.tgshare`。
 /// - 降质：libx264 CRF30 + veryfast，短边压至 720（横 `1280×720` / 竖 `720×1280`）；
-/// - 水印：Dart `WatermarkComposer.tiledOverlayPng` 生成**整版透明水印 PNG**
+/// - 水印：Dart `WatermarkComposer.tiledOverlayPng` 生成整版透明水印 PNG
 ///   （与照片水印逐像素同源的 45° 平铺算法，中文由引擎绘制规避 ffmpeg 字体痛点），
-///   ffmpeg 单行 `overlay` 叠到每一帧 —— 不可逆烧录；
+///   ffmpeg 单行 `overlay` 叠到每一帧，烧录后不可逆；
 /// - 音频 aac 96k；`+faststart` 流式播放友好；
-/// - 输出文件绝不落用户存储（临时工作区 pics/videos/tmp_ 前缀，读毕即删）。
+/// - 输出文件不落到用户存储（临时工作区 pics/videos/tmp_ 前缀，读完就删）。
 class VideoTranscoder {
   VideoTranscoder._();
 
@@ -40,7 +40,7 @@ class VideoTranscoder {
     final (tw, th) =
         size != null ? targetSizeFor(size.$1, size.$2) : (1280, 720);
 
-    // —— 水印整版 PNG（目标分辨率；失败则跳过水印仅转码）——
+    // 水印整版 PNG（按目标分辨率；失败就跳过水印，只转码）
     final overlayBytes =
         await WatermarkComposer.tiledOverlayPng(
             width: tw > 0 ? tw : 1280, height: th > 0 ? th : 720, text: watermarkText);
@@ -72,7 +72,7 @@ class VideoTranscoder {
         '-pix_fmt', 'yuv420p',
         '-c:a', 'aac',
         // 死锁规避：此构建下原生 AAC 编码器与 libx264 并发运行
-        // 会互相等待（无 -aac_coder fast 时联合编码永不收敛，实测
+        // 会互相等待（无 -aac_coder fast 时联合编码无法收敛，实测
         // 2.45s 视频挂 10 分钟+）；fast 模式绕过，输出仍为标准 aac。
         '-aac_coder', 'fast', '-b:a', '96k',
         '-movflags', '+faststart',

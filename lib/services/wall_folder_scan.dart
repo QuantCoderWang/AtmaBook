@@ -4,7 +4,7 @@ import 'wall_folder_scan_stub.dart'
 
 export 'wall_scan_types.dart';
 
-/// 目录照片读取入口：桌面 = dart:io 实现；Web = 桩（提示不支持）
+/// 目录照片读取入口：桌面走 dart:io，Web 走桩（提示不支持）
 Future<WallFolderCandidates> readFolderPhotoCandidates(
   String dirPath, {
   required int limit,

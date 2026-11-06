@@ -83,7 +83,7 @@ class _MarkerEditPageState extends State<MarkerEditPage> {
     super.dispose();
   }
 
-  // —— 交互编辑 ——
+  // 交互编辑
   Future<void> _addImage() async {
     try {
       final file = await ImagePicker()

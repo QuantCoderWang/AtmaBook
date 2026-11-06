@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants.dart';
 
-/// 通用占位照片（未接入真实图片前使用渐变色块）
+/// 通用占位照片（渐变色块）
 class PhotoThumb extends StatelessWidget {
   const PhotoThumb({
     super.key,

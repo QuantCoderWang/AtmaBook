@@ -84,7 +84,7 @@ class GuideEditor extends ChangeNotifier {
     }
   }
 
-  // —— 标记增删改（必去/位置变化时自动触发重聚类）——
+  // 标记增删改（必去或位置变化时自动重聚类）
 
   void addPlace(Place p) {
     _commit(guide.copyWith(
@@ -146,7 +146,7 @@ class GuideEditor extends ChangeNotifier {
     return null;
   }
 
-  // —— 地图源 ——
+  // 地图源
 
   /// 在构造时恢复离线包源状态（sourceId 带 pack 前缀则回填 offlinePack）
   Future<void> restoreOfflineSource() async {
@@ -213,7 +213,7 @@ class GuideEditor extends ChangeNotifier {
     notifyListeners();
   }
 
-  // —— 照片库：增加/更新/删除/预读 ——
+  // 照片库：增加、更新、删除、预读
 
   /// 导入完成后的批量落库（新照片在清单尾部）
   void addPhotos(List<PhotoItem> items) {

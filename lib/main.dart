@@ -11,7 +11,7 @@ import 'state/settings_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  MediaKit.ensureInitialized(); // 初始化media_kit播放器（新增视频功能）
+  MediaKit.ensureInitialized(); // 初始化 media_kit 播放器
 
   final storage = await initStorage();
   final guideRepo = GuideRepository(storage);

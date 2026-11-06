@@ -15,9 +15,9 @@ class PhotoMapBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 视频：原件绝不当图片解码 —— 只认首帧缩略；缺缩略走渐变占位。
+    // 视频：原件不当图片解码，只认首帧缩略；缺缩略走渐变占位。
     // 缩略命中时中心叠 ▶ 角标。
-    // 锁定配对统一走 thumbBinding（条目自带「文件名↔缩略图名」）。
+    // 配对统一走 thumbBinding（条目自带 file ↔ thumb）。
     final rel = photo.thumbBinding;
     if (photo.isVideo) {
       return Stack(

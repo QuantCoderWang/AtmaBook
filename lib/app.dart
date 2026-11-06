@@ -13,7 +13,6 @@ class AtmaBookApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 语言选项（i18n P0）
     return Consumer<AppSettings>(
       builder: (context, settings, _) {
         return MaterialApp(

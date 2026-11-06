@@ -15,23 +15,13 @@ import 'share_temp.dart' as share_temp;
 import 'video_transcoder.dart';
 import 'watermark.dart';
 
-/// 攻略分享服务（导出 / 导入 / 视频 / 原片）：
-/// 把一篇攻略打包为单个 `.tgshare` 文件（ZIP 容器）：
-/// ```
-/// manifest.json            格式版本/指纹/打包模式/数量清单
-/// guide.json               Guide.toJson 全量（导入时全量重映射 id）
-/// cover.jpg                封面 ≤1280px + 水印（无封面则无此条目）
-/// photos/<photoId>.jpg     照片副本 ≤960px JPEG q72 + 水印
-/// thumbs/<photoId>.jpg     缩略 ≤256px JPEG q70 + 水印
-/// images/<mkId>_<n>.jpg    标记插图 ≤960px + 水印
-/// videos/<videoId>.mp4     视频副本 ≤720p H.264 + 斜向平铺水印烧录（v2 格式）
-/// videos.json              视频元数据（拍摄时间/GPS/名称/时长；v2 格式）
-/// ```
-/// 指纹 = FNV-1a64(guide.json UTF-8 字节) —— 导入查重用，跨设备稳定。
-/// 格式版本：v1 = 无视频；v2 = 增 videos/ 与 videos.json；
-/// v3 = 增 manifest.policy（watermarked/original）——原片模式按原件字节入包
-/// （不缩放、不转码、不烧录水印），whitelist 扩展至常见图/视频扩展名。
-/// 读取端对 v1/v2/v3 双向兼容。
+/// 攻略分享服务：导出、导入、视频、原片。
+///
+/// 导出一个 `.tgshare`（ZIP）：manifest.json、guide.json、cover.jpg，
+/// 以及 photos/、thumbs/、images/、videos/ 和 videos.json；导入时全量重映射 id。
+/// 图片按水印模式缩放，视频转 ≤720p 再叠水印；原片模式按原件字节入包。
+/// 指纹取 FNV-1a64(guide.json UTF-8)，导入时用来查重。
+/// 读取端兼容旧版本格式。
 class ShareService {
   ShareService(this.storage);
 
@@ -40,13 +30,12 @@ class ShareService {
   static const format = 'tgshare';
   static const formatVersion = 3;
 
-  /// 原片包体积硬上限（1 GB；按字节计，与文件管理器口径一致）
+  /// 原片包体积上限（1 GB；按字节算，和文件管理器显示的一致）
   static const originalCapBytes = 1024 * 1024 * 1024;
-
 
   /// 构建 .tgshare 字节。
   /// [videos]：本文攻略的视频条目（账本中 guideId 命中者，导出弹窗负责筛选）；
-  /// [policy]：watermarked（默认，副本降质 + 烧录水印）/ original（后期版本原片字节
+  /// [policy]：watermarked（默认，副本降质 + 烧录水印）/ original（原片字节
   /// 直接入包，不缩放不转码不加水印；受 [originalCapBytes] 硬上限约束，超限由
   /// 导出弹窗先「剔除条目 / 降质」后再调进，进入本函数即要求已达标）。
   /// [excludeIds]：照片/视频挑选后剔除的条目 id 集合（原片模式筛选栏）；
@@ -64,10 +53,9 @@ class ShareService {
     void Function(int done, int total, String label)? onProgress,
     bool Function()? isCancelled,
   }) async {
-    // —— 账本归属照片合并：经地理相册归属进攻略的照片不会
-    //     写入 Guide.photos（账本 guideId 绑定），分享时需显式注入：
-    //     进 guide.json（接收端照常全量重映射落盘）+ 进媒体条目循环。
-    //     幂等：与攻略内照片 id 冲突的条目跳过（不产生重复条目）。
+    // 账本归属照片合并：经地理相册归属进攻略的照片不会写入 Guide.photos
+    // （账本 guideId 绑定），分享时需显式注入：进 guide.json（接收端照常
+    // 全量重映射落盘）+ 进媒体条目循环；id 冲突的条目跳过，保证幂等。
     final knownIds = {for (final p in guide.photos) p.id};
     final mergedExtras = [
       for (final p in extraPhotos)
@@ -111,13 +99,12 @@ class ShareService {
       onProgress?.call(done, items, label);
     }
 
-    // —— guide.json 与指纹（指纹 = 剥离时间戳的 guide 内容
+    // guide.json 与指纹（指纹 = 剥离时间戳的 guide 内容
     //     + 视频锚段（id+内容哈希，排序后拼串）；视频增删/换件都会换代）——
     final guideJson = jsonEncode(exportGuide.toJson());
     final fingerprint = fingerprintOf(exportGuide, videos: videoItems);
     tick(I18nService.t.progStructured);
 
-    // —— manifest ——
     final manifest = jsonEncode({
       'format': format,
       'formatVersion': formatVersion,
@@ -144,7 +131,6 @@ class ShareService {
     archive.addFile(ar.ArchiveFile.string('guide.json', guideJson));
     var skipped = 0;
 
-    // —— 封面 ——
     final coverRel = guide.coverImage;
     if (coverRel != null && coverRel.isNotEmpty) {
       final src = await _bytesOf(coverRel);
@@ -166,9 +152,7 @@ class ShareService {
       }
     }
 
-    // —— 照片 + 缩略 ——
-    // kind='video' 的条目跳过（视频转码/水印在后期版本接入后单独处理；
-    // 现在视频中只传原图字节会按图片解码崩溃先跳过，导出结果统计 skipped）
+    // 照片 + 缩略（视频条目在下方单独转码）
     for (final p in photos.where((p) => !p.isVideo)) {
       if (isCancelled?.call() ?? false) return null;
       final src = await _bytesOf(p.file);
@@ -218,7 +202,7 @@ class ShareService {
           .progThumb(p.name.isNotEmpty ? p.name : p.id));
     }
 
-    // —— 标记插图（攻略中插入的照片）：images/<mkId>_<index>.jpg ——
+    // 标记插图（攻略中插入的照片）：images/<mkId>_<index>.jpg
     if (includePhotos) {
       for (final m in guide.markers) {
         for (var i = 0; i < m.images.length; i++) {
@@ -245,7 +229,7 @@ class ShareService {
       }
     }
 
-    // —— 视频：≤720p 转码 + 整版平铺水印一次性烧录 ——
+    // 视频：≤720p 转码 + 整版平铺水印一次性烧录
     final videosJson = <Map<String, dynamic>>[];
     for (final v in videoItems) {
       if (isCancelled?.call() ?? false) return null;
@@ -323,8 +307,8 @@ class ShareService {
 
     final zip = Uint8List.fromList(ar.ZipEncoder().encode(archive));
     return ShareExportResult(
-      filename: '${_safeName(guide.title)}-'
-          '${_dateStamp(DateTime.now())}.tgshare',
+      filename: '${safeName(guide.title)}-'
+          '${dateStamp(DateTime.now())}.tgshare',
       bytes: zip,
       fingerprint: fingerprint,
       photoCount: photos.length,
@@ -344,7 +328,7 @@ class ShareService {
     return saveShareFile(result.filename, result.bytes);
   }
 
-  // ================= 导入链  =================
+  // ================= 导入链 =================
 
   /// 解析 .tgshare 字节 → 校验白名单条目 / manifest / guide.json。
   /// 任何不合法（非 ZIP、未知条目、版本不符、guide 解析失败）返回 null。
@@ -367,8 +351,7 @@ class ShareService {
       final manifest =
           jsonDecode(utf8.decode(entries['manifest.json']!)) as Map;
       if (manifest['format'] != format) return null;
-      // v1 = 无视频旧包；v2 = 含 videos/；v3 = 原片包（policy 字段）。
-      // 两端向后兼容旧包
+      // formatVersion 范围 1–3；v2 起含 videos/，v3 为原片包（policy 字段）。
       final vInt = (manifest['formatVersion'] as num?)?.toInt() ?? 0;
       if (vInt < 1 || vInt > formatVersion) {
         return null;
@@ -379,7 +362,7 @@ class ShareService {
           (entries['videos.json'] != null)
               ? jsonDecode(utf8.decode(entries['videos.json']!))
               : null;
-      // 封面条目：v1/v2使用cover.jpg；v3 原片模式可带原扩展名
+      // 封面条目：cover.jpg，原片模式可带原扩展名
       String? coverName;
       for (final ext in const ['jpg', ..._imgExts]) {
         final n = 'cover.$ext';
@@ -432,12 +415,11 @@ class ShareService {
 
     bool cancelled() => isCancelled?.call() ?? false;
 
-    // —— id 映射表 ——
+    // id 映射表
     final mkMap = <String, String>{for (final m in src.markers) m.id: newId('mk')};
     final phMap = <String, String>{for (final p in src.photos) p.id: newId('ph')};
     final znMap = <String, String>{for (final z in src.clusters) z.id: newId('zn')};
 
-    // —— 封面 ——
     String? newCoverRel;
     final coverBytes = parsed.coverBytes;
     if (coverBytes != null) {
@@ -455,7 +437,7 @@ class ShareService {
       tick(I18nService.t.progWriteCover);
     }
 
-    // —— 标记（含插图重映射）——
+    // 标记（含插图重映射）
     final newMarkers = <Place>[];
     for (final m in src.markers) {
       if (cancelled()) return null;
@@ -487,7 +469,6 @@ class ShareService {
       tick(I18nService.t.progGenMap(m.title));
     }
 
-    // —— 照片墙照片 ——
     final newPhotos = <PhotoItem>[];
     for (final p in src.photos) {
       if (cancelled()) return null;
@@ -495,7 +476,7 @@ class ShareService {
       final label = p.name.isNotEmpty ? p.name : p.takenAt.toString().substring(0, 10);
       var file = '';
       var thumb = '';
-      // 照片条目：多方言扩展名探测（v1/v2 只使用jpg；v3 原片模式保留原扩展名）
+      // 照片条目：多方言扩展名探测（原片模式保留原扩展名）
       final foundPhoto = _findEntry(entries, 'photos', p.id, _imgExts);
       final pt = entries['thumbs/${p.id}.jpg'];
       if (foundPhoto != null) {
@@ -530,7 +511,7 @@ class ShareService {
       ));
     }
 
-    // —— 视频：直接挂入本攻略的照片列表，不写入用户地理相册账本 ——
+    // 视频：直接挂进本攻略的照片列表，不写用户地理相册账本
     // （分享三默策略：shared 攻略的媒体不进接收方地理相册；同名视频条目按新 id 重映射）
     for (final meta in parsed.videosMeta) {
       if (cancelled()) return null;
@@ -539,7 +520,7 @@ class ShareService {
       final newPv = newId('pv');
       var file = '';
       var thumb = '';
-      // 视频条目：多方言扩展名探测（v2 只使用mp4；v3 原片模式保留原扩展名）
+      // 视频条目：多方言扩展名探测（原片模式保留原扩展名）
       final foundVideo = _findEntry(entries, 'videos', '${meta['id']}', _vidExts);
       final tb = entries['thumbs/${meta['id']}.jpg'];
       if (foundVideo != null) {
@@ -577,7 +558,7 @@ class ShareService {
       tick(I18nService.t.progAttachGuide(label));
     }
 
-    // —— 片区（成员引用重写；悬空成员剔除）——
+    // 片区（成员引用重写；悬空成员剔除）
     final newClusters = <ClusterZone>[];
     for (final z in src.clusters) {
       final members = [
@@ -622,18 +603,18 @@ class ShareService {
   }
 
   /// ZIP 条目白名单：仅允许信封固定文件与图片/视频三层目录，拒绝一切穿越。
-  /// v3 原片模式：媒体条目保留原扩展名（常见图/视频扩展名白名单内）。
+  /// 原片模式：媒体条目保留原扩展名（常见图/视频扩展名白名单内）。
   static bool _entrySafe(String name) {
     if (name == 'manifest.json' ||
         name == 'guide.json' ||
         name == 'videos.json') {
       return true;
     }
-    // 封面：v1/v2 只使用 cover.jpg；v3 原片模式可带原扩展名
+    // 封面：固定名 cover.jpg，原片模式可带原扩展名
     if (RegExp(r'^cover\.(jpg|jpeg|png|webp|gif)$').hasMatch(name)) {
       return true;
     }
-    // 视频条目：v2 只使用 .mp4；v3 原片模式保留导入时原扩展名
+    // 视频条目：.mp4，原片模式保留导入时原扩展名
     final reVid =
         RegExp(r'^videos/[A-Za-z0-9_.-]+\.(mp4|mov|mkv|webm|avi|m4v)$');
     if (reVid.hasMatch(name)) return true;
@@ -643,7 +624,7 @@ class ShareService {
   }
 
   /// 按候选扩展名探测条目：返回 `(ext, bytes)`；不存在返回 null。
-  /// 首选 jpg（v1/v2 既有口径），其余按白名单顺序。
+  /// 首选 jpg，其余按白名单顺序。
   static MapEntry<String, Uint8List>? _findEntry(
     Map<String, Uint8List> entries,
     String dir,
@@ -672,18 +653,18 @@ class ShareService {
     }
   }
 
-  static String _safeName(String title) {
+  static String safeName(String title) {
     final t = title.trim().isEmpty ? I18nService.t.guideFallback : title.trim();
     final cleaned = t.replaceAll(
         RegExp(r'[\\/:*?"<>|]'), '_');
     return cleaned.length > 40 ? cleaned.substring(0, 40) : cleaned;
   }
 
-  static String _dateStamp(DateTime t) =>
+  static String dateStamp(DateTime t) =>
       '${t.year}${t.month.toString().padLeft(2, '0')}'
       '${t.day.toString().padLeft(2, '0')}';
 
-  // ================= 原片导出链  =================
+  // 原片导出链
 
   /// 相对路径 → 扩展名小写（无扩展名返回空串）
   static String _extOfRel(String rel) {
@@ -691,7 +672,7 @@ class ShareService {
     return i < 0 ? '' : rel.substring(i + 1).toLowerCase();
   }
 
-  /// 包内媒体条目允许的扩展名（v3 白名单口径；原片模式保留原扩展名）
+  /// 包内媒体条目允许的扩展名（原片模式保留原扩展名）
   static const _imgExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
   static const _vidExts = ['mp4', 'mov', 'mkv', 'webm', 'avi', 'm4v'];
 
@@ -745,12 +726,11 @@ class ShareService {
           done.clamp(0, items).toInt(), items, label);
     }
 
-    // —— guide.json 与指纹（与水印模式同构：同一内容两款包指纹一致）——
+    // guide.json 与指纹（和水印模式同一内容，两款包的指纹一致）
     final guideJson = jsonEncode(guide.toJson());
     final fingerprint = fingerprintOf(guide, videos: videoItems);
     tick(t.progStructured);
 
-    // —— manifest ——
     final manifest = jsonEncode({
       'format': format,
       'formatVersion': formatVersion,
@@ -772,7 +752,7 @@ class ShareService {
     final manifestBytes = utf8.encode(manifest);
     tick(t.progManifest);
 
-    // —— 临时目录（流式 ZIP 输出；失败/取消时统一清理）——
+    // —— 临时目录：流式写 ZIP，失败或取消时统一清理 ——
     final workDir = await share_temp.createTempWorkDir('tgshare_orig');
     final tempZip = '$workDir/package.tgshare';
     final output = ar.OutputFileStream(tempZip, bufferSize: 1024 * 1024);
@@ -784,7 +764,7 @@ class ShareService {
       encoder.add(_bytesEntry('manifest.json', manifestBytes));
       encoder.add(_bytesEntry('guide.json', utf8.encode(guideJson)));
 
-      // —— 封面：原片字节（降质档时内存合成 ≤maxSide 的 JPEG 副本，
+      // 封面：原片字节（降质档时在内存合成 ≤maxSide 的 JPEG 副本，
       //     条目名随之改为 cover.jpg 与内容一致）——
       final coverRel = guide.coverImage;
       if (coverRel != null && coverRel.isNotEmpty) {
@@ -802,7 +782,7 @@ class ShareService {
         tick(t.progCover);
       }
 
-      // —— 照片：photos/<id>.<原扩展名>，缩略恒为 thumbs/<id>.jpg（无水印）——
+      // 照片：photos/<id>.<原扩展名>，缩略固定为 thumbs/<id>.jpg（无水印）
       // 降质档输出恒为 JPEG → 条目名随之改 .jpg（与内容一致）
       for (final p in photos) {
         if (cancelled()) return null;
@@ -832,7 +812,7 @@ class ShareService {
         tick(t.progThumb(p.name.isNotEmpty ? p.name : p.id));
       }
 
-      // —— 标记插图：images/<mkId>_<n>.<原扩展名>（与照片同规则）——
+      // 标记插图：images/<mkId>_<n>.<原扩展名>（和照片同一套规则）
       if (includePhotos) {
         for (final m in guide.markers) {
           for (var i = 0; i < m.images.length; i++) {
@@ -851,7 +831,7 @@ class ShareService {
         }
       }
 
-      // —— 视频：videos/<id>.<原扩展名> 原件字节流式入包（不转码、不加水印；
+      // 视频：videos/<id>.<原扩展名> 原件字节流式入包（不转码、不加水印；
       // ffmpeg 不可用（如 Android）也可完成——这正是原片模式的额外优势）——
       final videosJson = <Map<String, dynamic>>[];
       for (final v in videoItems) {
@@ -913,8 +893,8 @@ class ShareService {
     } catch (_) {}
 
     return ShareExportResult(
-      filename: '${_safeName(guide.title)}-'
-          '${_dateStamp(DateTime.now())}.tgshare',
+      filename: '${safeName(guide.title)}-'
+          '${dateStamp(DateTime.now())}.tgshare',
       bytes: Uint8List(0),
       tempPath: tempZip,
       fingerprint: fingerprint,
@@ -949,8 +929,8 @@ class ShareService {
     required String rel,
     required int? degradeMaxSide,
   }) async {
-    // 降质档：内存合成 ≤maxSide 的 JPEG 副本（仅当原图大于该档才有必要缩放，
-    // image 包 compose 对小图也会重编码 JPEG，统一走它保持口径简单）
+    // 降质档：内存合成 ≤maxSide 的 JPEG 副本（原图大于该档才需要缩放，
+    // image 包的 compose 对小图也会重编码，统一走它省得分叉）
     if (degradeMaxSide != null) {
       final src = await _bytesOf(rel);
       if (src == null) return false;
@@ -1045,7 +1025,7 @@ class ShareService {
     Set<String> excludeIds = const <String>{},
     bool includePhotos = true,
   }) async {
-    // 账本归属照片与攻略内照片同口径（修复：相册归属照片此前不计量）
+    // 账本归属照片和攻略内照片用同一套规则
     final knownIds = {for (final p in guide.photos) p.id};
     final merged = [
       ...guide.photos,
@@ -1092,9 +1072,9 @@ class ShareService {
     return b?.length ?? 0;
   }
 
-  /// 内容指纹计算（v7.0 S4 升级，公开供测试）：
-  /// v6.0 口径 = FNV-1a64(guide.json，剥离易变时间戳)；
-  /// S4 扩展 = 追加视频锚段（每条 `videoId:内容哈希文件名`，**排序后**
+  /// 内容指纹计算（公开给测试用）：
+  /// 基础 = FNV-1a64(guide.json，剥离易变时间戳)；
+  /// 视频扩展 = 追加视频锚段（每条 `videoId:内容哈希文件名`，排序后
   /// 以空格衔接）——视频增删/换件都会换代指纹，条目顺序不敏感。
   static String fingerprintOf(
     Guide guide, {
@@ -1113,7 +1093,7 @@ class ShareService {
 }
 
 /// 打包模式：
-/// - [watermarked]：现行口径——照片 ≤960px JPEG q72、封面 ≤1280px、视频 ≤720p
+/// - [watermarked]：现行方案——照片 ≤960px JPEG q72、封面 ≤1280px、视频 ≤720p
 ///   转码，全部烧录水印（不可逆）；
 /// - [original]：原片高清——媒体按原件字节直接入包（不缩放、不转码、不烧水印），
 ///   受 1 GB 上限约束；导入后攻略标记 [Guide.sharedOriginal]，允许再导出。
@@ -1144,7 +1124,7 @@ extension ShareExportDegradeX on ShareExportDegrade {
       };
 }
 
-  /// 导出结果（字节 + 元信息；落盘交给 [ShareService.saveExported]）
+/// 导出结果（字节 + 元信息；落盘交给 [ShareService.saveExported]）
 class ShareExportResult {
   const ShareExportResult({
     required this.filename,
@@ -1213,13 +1193,13 @@ class ShareParseResult {
 
   final Uint8List? coverBytes;
 
-  /// 封面条目名（v3 原片模式可携原扩展名；null = 包内无封面）
+  /// 封面条目名（原片模式可携原扩展名；null = 包内无封面）
   final String? coverName;
 
-  /// 打包模式：policy=original → true（旧包恒为 false=水印版）
+  /// 打包模式：policy=original → true（无 policy 字段视为水印版）
   bool get isOriginal => (manifest['policy'] as String?) == 'original';
 
-  /// 视频元数据列表（v2 格式；v1 空包）：
+  /// 视频元数据列表：
   /// {id, takenAt, lat?, lng?, name?, durationMs?}
   final List<Map<String, dynamic>> videosMeta;
 }

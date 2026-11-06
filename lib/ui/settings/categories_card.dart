@@ -13,7 +13,7 @@ import '../widgets/category_icon.dart';
 import '../widgets/tooltip_barrier.dart';
 
 /// 自定义 Pin 图片图标规格（与单标记上传同源同径）：
-/// **1:1 正方形 + ≤512px**（pickImage maxWidth 同步钳制长边），
+/// 1:1 正方形且 ≤512px（pickImage maxWidth 同步钳制长边），
 /// 内容哈希去重存 `pics/icons/i_*`，与内置图标同尺寸圆裁渲染，
 /// 替换不产生大小差。
 const int _kPinIconPx = 512;
@@ -22,9 +22,9 @@ const int _kPinIconPx = 512;
 /// - 点击分类行 → 编辑弹窗（配色 / 图标替换；内置分类可恢复默认）；
 /// - 尾行「添加」→ 新建自定义分类（名称 + 配色 + 图标，可删除）；
 /// - 生效面：分类定义读取统一走 `MarkerCategory` 静态注册表
-///   （攻略地图 / 图例 / 标记编辑 / 标记抽屉 / 笔记 零改动直达）；
+///   （攻略地图 / 图例 / 标记编辑 / 标记抽屉 / 笔记 都直接生效）；
 ///   持久化在 AppSettings（shared_preferences，跨会话恢复）。
-/// - 界面文案走 l10n categories* 词条（原内嵌双语表已收编 l10n 并退役）。
+/// 界面文案走 l10n 的 categories* 词条。
 class CategoriesCard extends StatelessWidget {
   const CategoriesCard({super.key});
 
@@ -102,7 +102,7 @@ class CategoriesCard extends StatelessWidget {
   }
 }
 
-// —— 编辑/新建弹窗 ———
+// 编辑/新建弹窗
 class _CatEditorDialog extends StatefulWidget {
   const _CatEditorDialog({
     this.initial,
@@ -172,7 +172,7 @@ class _CatEditorDialogState extends State<_CatEditorDialog> {
     if (mounted) Navigator.of(context).pop(true);
   }
 
-  /// 上传图片图标：相册选图 → 强制 ≤512px → 解码校验 **1:1 正方形**
+  /// 上传图片图标：相册选图 → 强制 ≤512px → 解码校验 1:1 正方形
   /// → MediaStore 内容哈希入库（与单标记自定义 Pin 图同目录同规格）。
   Future<void> _uploadImage() async {
     final texts = widget.t;
@@ -424,5 +424,3 @@ class _CatEditorDialogState extends State<_CatEditorDialog> {
     );
   }
 }
-
-

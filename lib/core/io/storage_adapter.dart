@@ -8,7 +8,7 @@ import 'storage_local.dart'
 /// - Web（Edge 预览）：无文件系统，JSON 降级存 `shared_preferences`，
 ///   媒体字节降级为「小文件 base64 偏好设置 / 大文件仅会话内存」。
 ///
-/// 统一以 `tourguider/` 内的**相对路径**寻址，例如：
+/// 统一用 `tourguider/` 下的相对路径寻址，例如：
 ///   `guides/<guideId>.json`、`guides_index.json`、
 ///   `pics/<guideId>/cover.jpg`、`pics/covers/<guideId>.bin`（Web）
 ///   `tiles/<packId>/{z}/{x}/{y}.png`、`tiles/<packId>/pack.json`

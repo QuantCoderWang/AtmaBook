@@ -3,11 +3,12 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import '../core/io/storage_adapter.dart';
-/// FFmpeg 外部进程封装（视频链路使用）：
-/// - **Windows**：随包附带 `ffmpeg.exe`/`ffprobe.exe`
-///   `ffmpeg_runtime/`，见 windows/runner/CMakeLists.txt）；
-/// - **Android**：接 `ffmpeg_kit_flutter_new`（同一命令字符串两端共用）；
-/// - 提取首帧缩略 / 探测时长；转码降质 + 叠水印。
+
+/// FFmpeg 外部进程封装（视频相关功能用）：
+/// Windows 随包附带 `ffmpeg.exe`/`ffprobe.exe`
+/// （放在 `ffmpeg_runtime/`，见 windows/runner/CMakeLists.txt）；
+/// Android 接 `ffmpeg_kit_flutter_new`（命令字符串两端共用）；
+/// 用来提首帧缩略、探时长、转码降质和叠水印。
 class FFmpegRunner {
   FFmpegRunner._();
 
@@ -32,7 +33,7 @@ class FFmpegRunner {
         _ffprobeExe = bundledFp;
         return;
       }
-      // PATH 兜底（避免开发期出现找不到文件的情况）
+      // PATH 兜底
       final where = await Process.run('where.exe', ['ffmpeg']);
       if (where.exitCode == 0) {
         final path = (where.stdout as String).trim().split('\n').first.trim();

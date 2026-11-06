@@ -16,7 +16,7 @@ import '../../state/settings_provider.dart';
 /// 生成分享文件弹窗：
 /// 选项（打包模式分支 + 是否含照片 + 内容筛选 + 体积预估）→ 进度（逐张处理，
 /// 可取消）→ 完成路径。
-/// - 水印低质版（默认）：现行口径——副本降质 + 烧录水印；
+/// - 水印低质版（默认）：现行方案，副本降质 + 烧录水印；
 /// - 原片高清版：媒体按原件字节入包（不缩放/不转码/无水印），包体硬上限
 ///   1 GB——预估超限时提供「剔除条目 / 降质打包（两档选一）」，原图全程只读。
 /// 结果通过 SnackBar 告知输出位置。
@@ -72,8 +72,8 @@ class _ShareExportSheetState extends State<_ShareExportSheet> {
         ..._extraPhotoItems,
       ];
 
-  /// 账本归属本攻略的照片 → 导出用 PhotoItem（bug修复：经地理相册
-  /// 归属的照片不写 Guide.photos，分享链需在此合并；id 用账本原 id，
+  /// 账本归属本攻略的照片 → 导出用 PhotoItem（经地理相册归属的照片
+  /// 不写 Guide.photos，分享链需在此合并；id 用账本原 id，
   /// 接收端照常全量重映射）。与攻略内照片按 id 幂等去重。
   List<PhotoItem> get _extraPhotoItems {
     final knownIds = {for (final p in widget.guide.photos) p.id};
@@ -84,7 +84,7 @@ class _ShareExportSheetState extends State<_ShareExportSheet> {
   }
 
   /// 媒体条目显示名：name 优先，空名回退拍摄时间（与照片查看器 /
-  /// 照片墙的自动命名口径一致：`2026/10/5 15:28`——账本照片导入链
+  /// 和照片墙自动命名的规则一样：`2026/10/5 15:28`，账本照片导入链
   /// 不携带源文件名（只传字节 + 内容哈希改名），故不存在文件名可取）。
   static String _mediaLabel(String name, DateTime takenAt) =>
       name.isNotEmpty
@@ -114,7 +114,7 @@ class _ShareExportSheetState extends State<_ShareExportSheet> {
 
   List<WallPhoto> _ledgerVideos = const <WallPhoto>[];
 
-  /// 账本归属本攻略的**照片**（kind 非 video；guideId 绑定，文件在账本）
+  /// 账本里归属本攻略的照片（kind 不是 video；guideId 绑定，文件在账本）
   List<WallPhoto> _ledgerPhotos = const <WallPhoto>[];
 
   /// 进入弹窗即预取账本归属媒体（读数据，失败按空计）
@@ -208,7 +208,7 @@ class _ShareExportSheetState extends State<_ShareExportSheet> {
   Future<void> _run() async {
     final t = AppLocalizations.of(context);
     if (_originalMode) {
-      // —— 原片模式：实测体积 → 超限给出分流（剔除 / 降质），达标直接打包 ——
+      // 原片模式：先实测体积，超限就给分流（剔除 / 降质），达标直接打包
       await _refreshLedgerMedia();
       final size =
           await ShareService(activeStorage).estimateOriginalBytes(
@@ -497,7 +497,7 @@ class _ShareExportSheetState extends State<_ShareExportSheet> {
           ),
         ),
         const SizedBox(height: 10),
-        // —— 打包模式分支（v8.0）——
+        // 打包模式分支
         Text(t.shareModeLabel,
             style:
                 TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),

@@ -26,7 +26,7 @@ class VideoThumbBackfill {
     await _backfillGuides(guides, guideRepo);
   }
 
-  // —— 相册账本 ——
+  // 相册账本
   static Future<void> _backfillLedger() async {
     try {
       final repo = WallPhotoRepository(activeStorage);
@@ -50,7 +50,7 @@ class VideoThumbBackfill {
     } catch (_) {}
   }
 
-  // —— 攻略内条目 ——
+  // 攻略内条目
   static Future<void> _backfillGuides(
       List<Guide> guides, GuideRepository guideRepo) async {
     for (final g in guides) {

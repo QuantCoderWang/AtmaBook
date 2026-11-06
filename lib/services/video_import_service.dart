@@ -32,15 +32,15 @@ class VideoMaterial {
 /// 视频插入服务（只在地理相册插入）：
 /// 1. 流式哈希（FNV-1a 采样）+ 流式复制原件到 `pics/videos/v_<哈希>.<ext>`
 ///    （大文件不整读内存、不进 MediaCache，播放走文件路径）；
-/// 2. ffprobe 探时长 + ffmpeg 提取首帧 → ≤512px JPEG 缩略；
-///    ffmpeg 不可用自动降级：时长 0 + 渐变占位缩略（不阻塞插入）；
-/// 3. 产出**相册账本**条目 `WallPhoto(kind:'video')` —— 无 GPS 入册，
-///    与无定位照片同一流程：查看器点选地图**手动补写地理位置**，
-///    补写后按就近规则归属攻略 → 攻略地图照片层与照片一致显示。
-///    （账本判重 / cap 上限 / 落库由相册页统一收口）
+/// 2. ffprobe 探时长 + ffmpeg 提首帧 → ≤512px JPEG 缩略；
+///    ffmpeg 用不了时自动降级：时长 0 + 渐变占位缩略（不阻塞插入）；
+/// 3. 产出相册账本条目 `WallPhoto(kind:'video')`——没有 GPS 入册，
+///    和无定位照片一样：查看器点选地图手动补位置，
+///    补完按就近规则归属攻略，攻略地图的照片层也正常显示。
+///    （账本判重、cap 上限、落库由相册页统一处理）
 class VideoLedgerService {
   /// 单文件「素材化」：复制原件 + 时长/首帧 → 构建账本条目。
-  /// 返回 (item, rel)；出錯返回 (null, 错误文案)。
+  /// 返回 (item, rel)；出错返回 (null, 错误文案)。
   Future<(VideoMaterial?, String?)> materialize(String srcPath) async {
     try {
       final src = File(srcPath);
@@ -52,7 +52,7 @@ class VideoLedgerService {
           '${Platform.pathSeparator}videos');
       await videoDir.create(recursive: true);
 
-      // —— 流式哈希 + 流式复制（先临时文件，腾位后改名落位）——
+      // 流式哈希 + 流式复制（先写临时文件，腾位后改名落位）
       // FNV-1a 32 位采样：首 1MB 全量累入 + 之后每 64 字节采样一点，
       // 大文件不整读内存；碰撞概率与现有照片哈希同级，去重足够。
       final tmpFile = File('${videoDir.path}${Platform.pathSeparator}'
@@ -78,7 +78,7 @@ class VideoLedgerService {
 
       final finalFile = File('${videoDir.path}${Platform.pathSeparator}$name');
       if (await finalFile.exists()) {
-        // 同内容已存在（历史插入）：直接复用现有文件，删除临时件
+        // 同内容已存在：直接复用现有文件，删除临时件
         try {
           await tmpFile.delete();
         } catch (_) {}
@@ -86,7 +86,7 @@ class VideoLedgerService {
         await tmpFile.rename(finalFile.path);
       }
 
-      // —— 时长 + 首帧缩略（ffmpeg 未就绪 → 占位兜底，不阻塞插入）——
+      // 时长 + 首帧缩略（ffmpeg 没就绪就用占位缩略，不阻塞插入）
       final durationMs = await FFmpegRunner.probeDurationMs(finalFile.path);
       final frameBytes = durationMs != null
           ? await FFmpegRunner.extractFirstFrame(finalFile.path)

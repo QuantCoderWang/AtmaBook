@@ -11,20 +11,13 @@ import '../data/models/wall_photo.dart';
 import 'share_service.dart';
 import 'share_temp.dart' as share_temp;
 
-/// 全量导出包服务：
-/// 把攻略本里全体攻略逐个按「原片模式」展示（媒体原件字节直通——不缩放、
-/// 不转码、不烧水印，含攻略内照片 + 账本归属照片/视频）打包成内层 `.tgshare`，
-/// 再装入**单个**外层 ZIP 容器 `.tgbundle`：
-/// ```
-/// manifest.json  {"format":"tgbundle","formatVersion":1,"guides":[内层名…],"exportedAt":…}
-/// 001_<名>-<日期>.tgshare  第 1 篇（外层 CompressionType.none 存储——内层本身已是 ZIP）
-/// 002_<名>-<日期>.tgshare  第 2 篇 …
-/// ```
-/// 与单包结构差异：**不限制总体积**（1 GB 上限是单包分享的 UI 侧口径，此不复用）；
-/// 内层文件名带三位序号前缀避免同名攻略 / 同日命名冲突。
-/// 导入：`ZipDirectory.read` 只读中央目录 → 对每个内层条目按需
-/// `ZipFile.getStream()`（archive 4.5 的懒读取——文件后端字节视图，逐条取出，
-/// 同一时刻只有一个内层包驻留内存），随后照常 `parseShare` + `applyImport`。
+/// 全量导出包服务。
+///
+/// 把攻略本里的攻略逐篇按原片模式打包成内层 `.tgshare`，再套进外层 ZIP
+/// `.tgbundle`；媒体原件直通，不缩放、不转码、不烧水印。
+/// 外层存 manifest.json 和 `001_<名>-<日期>.tgshare` 等带序号的条目，
+/// 序号用来避免同名攻略或同一天命名冲突；不限制总体积。
+/// 导入时用 `ZipDirectory.read` 只读中央目录，再按需逐条取流。
 class ShareBundleService {
   ShareBundleService(this.storage);
 
@@ -37,7 +30,7 @@ class ShareBundleService {
   /// 内层条目名白名单：`001_安全名-20261023.tgshare`（序号_内容名.tgshare）
   static final RegExp innerEntryReg = RegExp(r'^\d{3}_[^/\\]+\.tgshare$');
 
-  // ================= 导出链（全量打包） =================
+  // 导出链：全量打包
 
   /// 打包全部攻略为单个 `.tgbundle`（流式写临时文件，落盘交给
   /// [ShareService.saveExported]）。
@@ -69,11 +62,11 @@ class ShareBundleService {
     final now = DateTime.now();
 
     try {
-      // 内层文件名：三位序号防撞 + 单包同口径安全名/日期戳
+      // 内层文件名：三位序号防撞 + 和单包一样的安全名/日期戳
       final names = <String>[
         for (var i = 0; i < guides.length; i++)
           '${(i + 1).toString().padLeft(3, '0')}_'
-              '${_safeName(guides[i].title)}-${_dateStamp(now)}.tgshare',
+              '${ShareService.safeName(guides[i].title)}-${ShareService.dateStamp(now)}.tgshare',
       ];
       final manifestBytes = utf8.encode(jsonEncode(<String, dynamic>{
         'format': bundleFormat,
@@ -127,7 +120,7 @@ class ShareBundleService {
 
     return ShareExportResult(
       filename:
-          '${t.bundleFileName}-${_dateStamp(now)}.tgbundle',
+          '${t.bundleFileName}-${ShareService.dateStamp(now)}.tgbundle',
       bytes: Uint8List(0),
       fingerprint: '', // 全量包不做攻略级指纹查重（查重逐条在内层导入时进行）
       photoCount: 0,
@@ -270,17 +263,6 @@ class ShareBundleService {
     final cut = i > j ? i : j;
     return cut <= 0 ? filePath : filePath.substring(0, cut);
   }
-
-  /// 与单包 `_safeName` 同口径（文件系统非法字符 → _，超长截 40）
-  static String _safeName(String title) {
-    final s = title.trim().isEmpty ? I18nService.t.guideFallback : title.trim();
-    final cleaned = s.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-    return cleaned.length > 40 ? cleaned.substring(0, 40) : cleaned;
-  }
-
-  static String _dateStamp(DateTime t) =>
-      '${t.year}${t.month.toString().padLeft(2, '0')}'
-      '${t.day.toString().padLeft(2, '0')}';
 }
 
 /// 逐条导入结果（[ShareBundleService.importAll] 的 onGuide 返回值）

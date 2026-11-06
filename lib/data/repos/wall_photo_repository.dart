@@ -6,7 +6,7 @@ import '../models/wall_photo.dart';
 
 /// 照片墙白板库数据：`data/wall_photos.json`
 /// - `photos`：照片条目；
-/// - `years`：每一年照片墙的结果快照（WallYearRecord，供以后做可分享照片墙）；
+/// - `years`：每一年照片墙的结果快照（WallYearRecord）；
 /// - `hidden`：在地理相册中被手动隐藏的 uid 集合（`g:<gid>:<pid>` / `w:<wid>`）。
 /// 三键合并写入（更新互不覆盖）。
 class WallPhotoRepository {

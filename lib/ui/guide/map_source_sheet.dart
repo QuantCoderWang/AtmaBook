@@ -129,7 +129,7 @@ class _MapSourceSheetState extends State<MapSourceSheet> {
                         dense: true,
                       ),
                     const Divider(height: 4, indent: 16, endIndent: 16),
-                    // —— 已下载离线包 ——（勾选即切包，切包立即生效）
+                    // 已下载的离线包（勾选即切包，立即生效）
                     if (_packs.isEmpty)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),

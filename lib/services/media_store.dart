@@ -91,7 +91,7 @@ class MediaStore {
     try {
       await activeStorage.writeBytes(rel, bytes);
     } catch (_) {
-      // Web 大文件时机降级为仅内存缓存，非web环境下用不上，仅为测试期使用，不需要可删除
+      // 落盘失败时退回内存缓存
     }
     MediaCache.put(rel, bytes);
     return rel;

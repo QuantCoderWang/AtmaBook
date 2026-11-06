@@ -48,7 +48,7 @@ class Place {
   final bool mustVisit;
   final String description;
 
-  /// 图片相对路径（`pics/<guideId>/` 下），M6 前为占位
+  /// 图片相对路径（`pics/<guideId>/` 下）
   final List<String> images;
   final List<GeoLink> links;
 
@@ -172,7 +172,7 @@ class Guide {
   /// 照片墙：带 EXIF GPS 的照片
   final List<PhotoItem> photos;
 
-  /// 片区（开发时使用演示假数据）
+  /// 片区
   final List<ClusterZone> clusters;
   final GuideSettings settings;
 
@@ -181,7 +181,7 @@ class Guide {
 
   /// 原片包标识（policy=original 的分享包导入后为 true）。
   /// 也代表该攻略可再次导出原片（备份链可延续）；
-  /// 共享的「不进接收方地理相册」隔离口径与 [shared] 完全一致。
+  /// 和 [shared] 一样，导入的媒体不进接收方地理相册。
   final bool sharedOriginal;
 
   /// 导入时的分享内容指纹（重复导入查重用；本地攻略为 null）
@@ -298,10 +298,9 @@ class Guide {
 }
 
 /// 攻略级片区参数：
-/// - 片区半径 / 最少点数默认**跟随通用设置**（设置页）；
+/// - 片区半径 / 最少点数默认跟随通用设置（设置页）；
 /// - 本攻略重设后（覆写值非空）以攻略自身为准，不再随通用设置变化；
-/// - `showRoutes` 沿用旧存储键：语义改为「是否显示片区范围圈」；
-/// - 旧版 JSON 的 `clusterRadiusM`/`minPts` 为占位值（曾恒等于通用默认），不再读取。
+/// - [showRoutes] 表示是否显示片区范围圈（存储键沿用旧名）；
 class GuideSettings {
   const GuideSettings({
     this.zoneRadiusOverrideM,
@@ -347,7 +346,7 @@ class GuideSettings {
 }
 
 /// 照片墙照片：
-/// - `file`/`thumb` 为原图与缩略图的相对路径（旧演示数据为空串，仍走渐变占位）；
+/// - `file`/`thumb` 为原图与缩略图的相对路径（为空串时走渐变占位）；
 /// - `lat`/`lng` 由 EXIF GPS 解析（无定位为 null，进「未定位」栏手动绑定标记）；
 /// - `placeId` 绑定的标记；`name` 自定义显示名（空则展示拍摄时间）。
 class PhotoItem {
@@ -373,7 +372,7 @@ class PhotoItem {
   final double? lng;
   final DateTime takenAt;
 
-  /// 旧演示数据的渐变索引（无真实文件时仍用于占位渲染）
+  /// 渐变索引（无真实文件时用于占位渲染）
   final int gradientIndex;
   final String caption;
 
@@ -399,9 +398,7 @@ class PhotoItem {
 
   bool get hasFile => file.isNotEmpty;
 
-  /// 锁定缩略绑定：本条目**自带**的「文件名↔缩略图名」配对——
-  /// 缩略来源唯一正解；渲染端禁止按位序/index 推断
-  /// （口径唯一定义点见 `core/utils/thumb_binding.dart`）。
+  /// 缩略图配对（规则见 `core/utils/thumb_binding.dart`）
   String get thumbBinding =>
       resolveThumbBinding(isVideo: isVideo, thumb: thumb, file: file);
 
@@ -536,7 +533,7 @@ class ClusterZone {
   }
 }
 
-/// 离线瓦片包（初版展示占位）
+/// 离线瓦片包
 class TilePack {
   const TilePack({
     required this.id,

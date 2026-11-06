@@ -30,7 +30,7 @@ class AppSettings extends ChangeNotifier {
   /// 标记显示规则：图标式 Pin（默认） / 彩色大头针
   PinDisplayMode pinMode = PinDisplayMode.icons;
 
-  /// 界面语言：默认**中文**（跟随系统为可选项，非中英系统语言回退中文）
+  /// 界面语言：默认中文（跟随系统是可选，非中英系统语言回退中文）
   AppLanguage language = AppLanguage.zh;
 
   /// 片区参数（默认 5km / 最少 2 点）
@@ -140,7 +140,7 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
-  // —— 分类管理：设置页「地点分类」的持久化与写入入口 ———
+  // 分类管理：设置页「地点分类」的持久化与写入入口
 
   /// 编码当前分类状态（纯函数，测试直用）：内置覆盖 + 自定义定义。
   /// `img` = 自定义图片图标（贯通设置页合并功能）；非空才落键，
@@ -172,7 +172,7 @@ class AppSettings extends ChangeNotifier {
     });
   }
 
-  /// 恢复（load 时调用）：null / 坏 JSON / 未知版本 → 静默回出厂，绝不抛错阻塞启动
+  /// 恢复（load 时调用）：null / 坏 JSON / 未知版本 → 静默回出厂，不会抛错阻塞启动
   static void restoreCategories(String? json) {
     if (json == null || json.isEmpty) return;
     try {
@@ -204,7 +204,7 @@ class AppSettings extends ChangeNotifier {
     }
   }
 
-  /// 改样式（内置=换色/换图标；自定义同口径 + 可改名）→ 持久化 → 通知全局生效。
+  /// 改样式（内置=换色/换图标；自定义走同一套，还能改名）→ 持久化 → 通知全局生效。
   /// 图片图标三态：clearImage=true 撤下；imagePath 非空替换；
   /// 两者都不传保持现状。
   void setCategoryLook(String id,

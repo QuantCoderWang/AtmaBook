@@ -9,9 +9,9 @@ import 'cluster_service.dart';
 
 /// 攻略笔记·片区区块：一个片区（或孤立片区）的笔记内容。
 ///
-/// - [members]：片区必去成员（zone.memberIds）中**非住宿/餐饮/购物**的地点
+/// - [members]：片区必去成员（zone.memberIds）里非住宿/餐饮/购物的地点
 ///   （即景点/交通/其他类，直接来自聚类，就近排序）；
-/// - [attached]：片区**选去景点**（非聚类成员）按「最近片区」附挂，就近排序；
+/// - [attached]：片区内的选去景点（非聚类成员）按最近片区附挂，就近排序；
 /// - [dining]/[shopping]：片区圈内的餐饮/购物（必去成员 + 圈内非成员，全量）。
 class NotesZone {
   const NotesZone({
@@ -54,8 +54,7 @@ class NotesModel {
 
   final List<Place> hotels;
 
-  /// 推荐住宿下标：距片区群质心最近的住宿（页头 chips 默认选中并标注）
-  /// 「推荐住宿」）；无住宿为 -1。
+  /// 推荐住宿下标：距片区群质心最近的住宿（页头 chips 默认选中并标注「推荐住宿」）；无住宿为 -1。
   final int recommendedHotelIdx;
 
   final List<NotesZone> zones;
@@ -81,8 +80,8 @@ class NotesModel {
   }
 
   /// 以 [startHotel] 为游览起点重排片区：
-  /// - 有起点 → 起点到各片区中心距离**升序**（近者先游）；
-  /// - 无起点 → 片区游览点数**降序**，并列按片区中心到群质心距离升序。
+  /// - 有起点 → 起点到各片区中心距离升序（近的先游）；
+  /// - 无起点 → 片区游览点数降序，并列时按片区中心到群质心距离升序。
   List<NotesZone> orderedZones(Place? startHotel) {
     if (zones.isEmpty) return const [];
     final list = [...zones];
@@ -107,13 +106,13 @@ class NotesModel {
 
 /// 攻略笔记生成器（纯函数；不触发任何写盘）。
 ///
-/// - 片区：优先使用攻略持久化的 `clusters`（聚类，随标记/参数变化自动
-///   重算）；为空且有必去点时用 [epsFallbackM]/[minPtsFallback] 临时
-///   重算一次（攻略级覆写优先，页面注入通用设置值），仅内存不落库；
-/// - 排序：有住宿按距离、无住宿按片区游览点数（见 [NotesModel.orderedZones]）；
-/// - 餐饮/购物：落在片区圈（中心距离 ≤ 有效半径）内归片区全量展示，
-///   同时落入多圈取最近者；圈外进 [NotesModel.otherPois]；
-/// - 距离计算：haversine（core/geo.dart，与聚类/就近归属同口径）。
+/// 片区取自攻略持久化的 `clusters`（随标记/参数变化自动重算）。为空但有
+/// 必去点时，用 [epsFallbackM]/[minPtsFallback] 临时算一次（攻略级覆写优先，
+/// 页面注入通用设置值），只在内存里，不落库。
+/// 排序：有住宿按距离，无住宿按片区游览点数（见 [NotesModel.orderedZones]）。
+/// 餐饮/购物落在片区圈内归该片区全量展示，同时落多圈取最近者，圈外进
+/// [NotesModel.otherPois]。
+/// 距离用 haversine（core/geo.dart，和聚类、就近归属是同一套算法）。
 class GuideNotesService {
   static Future<NotesModel> build(
     Guide guide, {
@@ -126,7 +125,7 @@ class GuideNotesService {
         if (m.categoryId == MarkerCategory.hotel.id) m,
     ];
 
-    // —— 片区来源 ——
+    // 片区来源
     var zones = guide.clusters;
     if (zones.isEmpty) {
       final must = guide.markers.where((m) => m.mustVisit).toList();
@@ -142,7 +141,7 @@ class GuideNotesService {
       }
     }
 
-    // —— 分区内容骨架（与 zones 对齐；无片区则全平铺进 otherPois）——
+    // 分区内容骨架（和 zones 对齐；无片区就全平铺进 otherPois）
     final sections = <NotesZone>[];
     final otherPois = <Place>[];
 
@@ -194,7 +193,7 @@ class GuideNotesService {
       ));
     }
 
-    // —— 非成员标记分流 ——
+    // 非成员标记分流
     final memberIds = <String>{for (final z in zones) ...z.memberIds};
     for (final p in guide.markers) {
       if (memberIds.contains(p.id)) continue;
@@ -240,7 +239,7 @@ class GuideNotesService {
       }
     }
 
-    // —— 推荐住宿：距片区群质心最近 ——
+    // 推荐住宿：离片区群质心最近
     var recIdx = -1;
     final c = sections.isEmpty
         ? null
@@ -271,7 +270,7 @@ class GuideNotesService {
     );
   }
 
-  /// 最近片区下标（并列无关系；zones 空 → null）
+  /// 最近片区下标（并列取下标靠前者；zones 空 → null）
   static int? _indexOfNearestZone(List<ClusterZone> zones, Place p) {
     if (zones.isEmpty) return null;
     var best = 0;

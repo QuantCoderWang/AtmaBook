@@ -14,11 +14,11 @@ import 'wall_folder_scan.dart';
 /// 年度照片墙快照种子：与白板布局同一 seed 保持一致
 const int kWallLayoutSeed = 20261020;
 
-/// 照片墙白板库服务：
-/// - 汇聚统一视图：各攻略 `Guide.photos`（uid=g:guideId:photoId）+ 白板数据（uid=w:id）；
-/// - 取样上限：合并去重后按拍摄时间取最新 [cap] 张（设置可调，默认 200）；
-/// - 自动读取：桌面扫描「设置 → 默认相册目录」→ 与手动导入走同一条
-///   解析→判重→记录→归属→账本链；Web 端降级为手动导入与提示。
+/// 照片墙白板库服务。
+/// 汇聚统一视图把各攻略的 `Guide.photos`（uid=g:guideId:photoId）和
+/// 白板数据（uid=w:id）合到一起，去重后按拍摄时间取最新 [cap] 张（默认 200）。
+/// 桌面可扫描「设置 → 默认相册目录」自动读取，和手动导入走同一条
+/// 解析 → 判重 → 记录 → 归属 → 账本链；Web 端降级为手动导入加提示。
 class WallPhotoService {
   WallPhotoService(this.storage);
 
@@ -26,7 +26,7 @@ class WallPhotoService {
 
   WallPhotoRepository get _repo => WallPhotoRepository(storage);
 
-  // —— 汇聚视图 ——
+  // 汇聚视图
 
   List<WallPhotoPoint> collectPoints({
     required List<Guide> guides,
@@ -62,7 +62,7 @@ class WallPhotoService {
     return over > 0 ? uniq.sublist(over) : uniq;
   }
 
-  // —— 导入链 ——
+  // 导入链
 
   /// 自动读取默认相册目录（桌面端；Web 返回不支持的提示报告）
   Future<WallScanReport> importDefaultFolder({
@@ -171,11 +171,8 @@ class WallPhotoService {
     );
   }
 
-  // —— 账本编辑 ——
-
   /// 重建「每一年的照片墙结果」快照并落库（墙布局与白板同 seed 同输入 → 一致）：
-  /// 每年记录当年照片 uid + 各自摆放（x/y/角度/尺寸）+ 地理团划分，
-  /// 为以后按年导出可分享照片墙准备数据。
+  /// 每年记录当年照片 uid + 各自摆放（x/y/角度/尺寸）+ 地理团划分。
   Future<Map<int, WallYearRecord>> rebuildYearIndex({
     required List<Guide> guides,
     required int cap,

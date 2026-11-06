@@ -17,11 +17,11 @@ import '../../services/geocode_service.dart';
 import '../../state/guides_provider.dart';
 import '../../state/settings_provider.dart';
 
-/// 新增攻略向导（两段式）：
-///  第 1 步  基础信息：标题 / 简介 / 区域（决定默认地图源）/ 封面图片（可选）
-///  第 2 步  范围检索：**真实地理检索**（Nominatim 免密钥；境内可配高德 Key）
-///           → 检查该区域是否已有落盘离线瓦片包
-///           （已存在 → 直接使用；不存在 → 一键下载）
+/// 新增攻略向导，分两步：
+/// 先填基础信息（标题、简介、区域——区域决定默认地图源、封面可选），
+/// 再做范围检索（Nominatim 免密钥，境内可配高德 Key）。
+/// 检索完检查该区域有没有落盘的离线瓦片包：
+/// 有就直接用，没有就一键下载。
 class CreateGuideDialog extends StatefulWidget {
   const CreateGuideDialog({super.key});
 
@@ -43,7 +43,7 @@ class _CreateGuideDialogState extends State<CreateGuideDialog> {
   GuideRegion _region = GuideRegion.china;
   Uint8List? _coverBytes;
 
-  // —— 真实检索状态 ——
+  // 真实检索状态
   Timer? _debounce;
   int _searchSeq = 0;
   bool _searching = false;
@@ -51,7 +51,7 @@ class _CreateGuideDialogState extends State<CreateGuideDialog> {
   List<GeoPlaceResult> _results = [];
   final Map<int, TilePack> _packByIndex = {};
 
-  // —— 一键下载 ——
+  // 一键下载
   int? _downloadingIdx;
   double _downloadProgress = 0;
   Timer? _timer;
@@ -249,7 +249,7 @@ class _CreateGuideDialogState extends State<CreateGuideDialog> {
     );
   }
 
-  // —— 基础信息 ——
+  // 基础信息
   Widget _buildBasicStage() {
     final t = AppLocalizations.of(context);
     return ValueListenableBuilder<TextEditingValue>(
@@ -357,7 +357,7 @@ class _CreateGuideDialogState extends State<CreateGuideDialog> {
     );
   }
 
-  // —— 真实范围检索与地图包检查 ——
+  // 真实范围检索与地图包检查
   Widget _buildSearchStage() {
     final t = AppLocalizations.of(context);
     return Column(

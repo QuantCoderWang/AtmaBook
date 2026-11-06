@@ -24,7 +24,7 @@ class ClusterService {
       return const ClusterResult(zones: []);
     }
 
-    // —— DBSCAN ——（保序：按标记列表出现顺序遍历，结果稳定可复现）
+    // DBSCAN（保序：按标记列表顺序遍历，结果稳定可复现）
     final clusters = _dbscan(members, epsMeters, minPts);
     clusters.sort((a, b) => b.length.compareTo(a.length));
 
@@ -46,7 +46,7 @@ class ClusterService {
       ));
     }
 
-    // —— 重叠消解 ——
+    // 重叠消解
     final laid = ZoneLayout.resolve(zones);
 
     if (_mapEquivalent(laid, zones)) {
@@ -56,8 +56,8 @@ class ClusterService {
     return ClusterResult(zones: laid);
   }
 
-  /// —— DBSCAN ——
-  /// 使用经典DBSCAN算法：核心点邻居 ≥ minPts 扩张；边界点并入；噪声（孤立点）单列成簇。
+  /// DBSCAN 主体。
+  /// 核心点邻居 ≥ minPts 才扩张；边界点并入；噪声（孤立点）单列成簇。
   static List<List<Place>> _dbscan(
       List<Place> places, double eps, int minPts) {
     final clusters = <List<Place>>[];

@@ -189,7 +189,7 @@ class _HomePageState extends State<HomePage> {
     final provider = context.read<GuidesProvider>();
     final group = XTypeGroup(
         label: t.shareFileTypeLabel,
-        // 新增功能，使用.tgbundle文件，全量导出大包（单个外层容器，内含若干子文件 .tgshare）
+        // 使用 .tgbundle 文件全量导出大包（单个外层容器，内含若干子文件 .tgshare）
         extensions: ['tgshare', 'zip', 'tgbundle'],
         // iOS 按 UTI 过滤（extensions 在 iOS 不生效；.tgshare 同为 zip 容器）
         uniformTypeIdentifiers: const <String>['public.zip-archive']);
@@ -270,7 +270,7 @@ class _HomePageState extends State<HomePage> {
     try {
       debugPrint(
           '[tg-import] file=${file.name} ${bytes.length ~/ 1024}KB');
-      // .tgbundle 全量包分流——不限体积（1GB 上限仅单攻略包口径），
+      // .tgbundle 全量包分流：不限体积（1GB 上限只针对单攻略包），
       // 逐条流式导入（同一时刻只驻留一个内层包），指纹查重自动跳过。
       if (file.name.toLowerCase().endsWith('.tgbundle')) {
         progressLabel.value = t.importBundleProg;
@@ -393,7 +393,7 @@ class _HomePageState extends State<HomePage> {
       failure = '$e';
     }
 
-    // —— 先关加载框，再处理结果 ——
+    // 先关加载框，再处理结果
     rootNav.pop();
     if (failure != null) {
       failure = failure.startsWith(t.importFailedPrefix)
@@ -880,7 +880,7 @@ class _ListGuideCard extends StatelessWidget {
   }
 }
 
-// —— 两种卡片共用逻辑 ——
+// 两种卡片共用的逻辑
 void _open(BuildContext context, Guide guide) =>
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => GuideMapPage(guide: guide),

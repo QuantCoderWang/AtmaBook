@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../core/i18n_service.dart';
 import '../data/models/guide.dart';
+
 /// 外跳导航 / 链接打开（桌面模式下默认导航引导至高德地图）：
 /// - 手机端：`geo,lat,lng?q=...` 唤起系统地图 App（系统会弹应用选择器）；
 /// - 桌面 / Web：默认使用高德地图导航面板（默认交通选择公交；境内境外同理），
@@ -39,16 +40,14 @@ class NavigatorService {
       );
       if (ok) return;
     } catch (_) {}
-    // 手机端唤起失败 → 退浏览器直链
-    if (!identical(target, Uri.parse(''))) {
-      try {
-        final ok2 =
-            await launchUrl(Uri.parse(osmUrl), mode: LaunchMode.externalApplication);
-        if (ok2) return;
-      } catch (_) {}
-    }
+    // 唤起失败 → 浏览器直链
+    try {
+      final ok2 =
+          await launchUrl(Uri.parse(osmUrl), mode: LaunchMode.externalApplication);
+      if (ok2) return;
+    } catch (_) {}
     await Clipboard.setData(ClipboardData(
-        text: '$lat, $lng')); 
+        text: '$lat, $lng'));
     snack(I18nService.t.navAmapFail);
   }
 

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 
-/// 服务层取词通道：无 BuildContext 的位置
-/// （share_service / video_import_service / guide_notes_service / 水印 等）
-/// 直接 `I18nService.t.xxx` 取词。
+/// 服务层取词通道：没有 BuildContext 的地方
+/// （share_service / video_import_service / guide_notes_service / 水印等）
+/// 直接用 `I18nService.t.xxx` 取文案。
 ///
-/// - 当前实例由 app.dart 的 `localeResolutionCallback` 统一同步
-///   （与 UI 通道 `AppLocalizations.of(context)` 同一 Locale、同一来源）；
-/// - 未初始化时回退中文模板。
+/// 当前实例由 app.dart 的 `localeResolutionCallback` 同步过来，
+/// 和 UI 通道 `AppLocalizations.of(context)` 用同一个 Locale；
+/// 没初始化时回退中文模板。
 class I18nService {
   I18nService._();
 

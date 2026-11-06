@@ -28,18 +28,18 @@ import '../../state/guides_provider.dart';
 import '../widgets/photo_thumb.dart';
 import '../widgets/tooltip_barrier.dart';
 
-/// 地理相册（原「照片墙」板块，按反馈重做）：
-/// - 全部照片按 **真实地理坐标** 铺在地图上（EXIF GPS，WGS-84）；
-/// - **动态加载**：仅渲染当前视口内的照片；放大后立即呈现更小区域的更多照片；
-///   低缩放级时相邻照片聚合为「数量气泡」，点气泡自动放大到该组；
-/// - **进入定位**：请求用户位置作为默认视野（geolocator；用户手动挪图后不抢焦点）；
-/// - 底图为免 Key 的 Esri 街道源（全平台可用）；
-/// - 照片两条途径入册：**批量导入**（桌面相册文件夹 / Web 批量多选）
-///   + **精选加入**（逐张勾选确认）——均在右上角 ⋮ 菜单；
-/// - 右上角「相册库」：全部照片清单（GPS 状态 + 地图显示开关；
-///   隐藏登记持久化于账本 `hidden` 键）；
-/// - 点照片缩略图 → 全黑虚拟空间查看（左右翻页；逐张剔除；无 GPS 照片
-///   可「设置地理标识」→ 点选地图写入经纬度）。
+/// 地理相册页面。
+/// 照片按 EXIF GPS（WGS-84）铺在地图上，底图用免 Key 的 Esri 街道源。
+/// 只渲染当前视口内的照片，放大后会自动出现更小区域的照片；
+/// 低缩放时相邻照片合成「数量气泡」，点气泡放大到该组。
+/// 进入页面时请求定位作为默认视野，用户手动挪过图之后不再抢焦点。
+/// 入册有两个口子：右上角 ⋮ 菜单里的「批量导入」（桌面选文件夹 /
+/// Web 批量多选）和「精选加入」（逐张勾选确认）。
+/// 「相册库」列出全部照片，带 GPS 状态和地图显示开关，
+/// 隐藏登记存在账本的 `hidden` 键里。
+/// 点缩略图进入全黑查看器，可左右翻页、逐张剔除；
+/// 无 GPS 的照片还能「设置地理标识」，点选地图写入经纬度。
+/// 剔除不删原文件，撤销走「管理已剔除」。
 class PhotoWallGalleryPage extends StatefulWidget {
   const PhotoWallGalleryPage({super.key});
 
@@ -125,9 +125,9 @@ List<_Entry> _unitedAlbumEntries({
         if (x.id == parts[2]) p = x;
       }
       if (g == null || p == null) continue;
-      // 视频：rel 只取首帧缩略（缺缩略直走占位），绝不退化到视频原件路径
-      // —— 否则各行卡/地图缩略会误把视频字节当图片解码（Invalid image data）
-      // rel 一律取条目**自带**的锁定配对（thumbBinding），不再内联推导
+      // 视频：rel 只取首帧缩略（缺缩略直接走占位），不会退到视频原件路径
+      // 否则行卡和地图缩略会把视频字节当图片解码（Invalid image data）
+      // rel 一律取条目自带的配对（thumbBinding），不再内联推导
       entries.add(_Entry(
         uid: pt.uid,
         point: pt,
@@ -158,7 +158,7 @@ List<_Entry> _unitedAlbumEntries({
   return entries;
 }
 
-/// —— 相册操作共享（地理相册页 / 相册库页均用）———
+/// 相册操作共享（地理相册页和相册库页都用）
 
 /// 从地理相册剔除一张照片：
 /// - 攻略照片：删除照片文件并从攻略 `Guide.photos` 移除（与地图照片同步）；
@@ -299,7 +299,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
   void _snack(String msg) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
 
-  // —— 数据加载 / 隐藏登记 ——
+  // 数据加载 / 隐藏登记
   Future<List<WallPhoto>> _readLedger() async =>
       WallPhotoRepository(activeStorage).load();
 
@@ -328,7 +328,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
     _refreshVisible();
   }
 
-  // —— 用户定位 ——
+  // 用户定位
 
   Future<void> _locateUser({bool initial = false}) async {
     if (_locating) return;
@@ -363,7 +363,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
     }
   }
 
-  // —— 批量导入（桌面：相册文件夹；Web：批量多选）——
+  // 批量导入（桌面选相册文件夹；Web 批量多选）
   Future<void> _scanFolder() async {
     if (kIsWeb) {
       // Web 无本地目录权限，降级为批量多选（同一导入链）
@@ -471,10 +471,10 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
     await _reloadLedger();
   }
 
-  // —— 插入视频（仅可使用地理相册入口；批量多选 / 一张张点选）——
+  // 插入视频（只从这里进；批量多选 / 一张张点选）
   /// 插入视频：先选收集方式（批量多选 / 逐个挑选），
   /// 收集文件路径 → 逐个素材化（流式复制 + 时长/首帧缩略）→
-  /// 账本判重 + 上限 → 落库；视频入册**不带 GPS**，
+  /// 账本判重 + 上限 → 落库；视频入册不带 GPS，
   /// 提示用户到【相册库】点开每个视频补写地理位置（与照片补位同流程）。
   Future<void> _insertVideos() async {
     final t = AppLocalizations.of(context);
@@ -498,7 +498,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
     );
     if (batch == null || !mounted) return;
 
-    // —— 收集路径 ——
+    // 收集路径
     final group = XTypeGroup(
         label: t.videoTypeGroup,
         extensions: ['mp4', 'mov', 'webm', 'mkv', 'avi', 'm4v']);
@@ -520,7 +520,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
           paths.addAll(files.map((f) => f.path));
         }
       } else {
-        // —— 逐个：一支一支选，每次插入后询问是否继续 ——
+        // 逐个：一支一支选，每次插入后问要不要继续
         for (;;) {
           String? one;
           if (kIsWeb ||
@@ -561,7 +561,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
     }
     if (paths.isEmpty || !mounted) return;
 
-    // —— 素材化 + 判重 + 落库 ——
+    // 素材化 + 判重 + 落库
     setState(() => _busy = true);
     final report = _VideoInsertAcc();
     final added = <WallPhoto>[];
@@ -592,7 +592,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
     _maybeAimCamera();
   }
 
-  ImageSource _vpickSource() => ImageSource.gallery;  // —— 剔除（照片墙 + 地图照片 同步移除）——
+  ImageSource _vpickSource() => ImageSource.gallery; // 地理照片同步移除
 
   Future<void> _removeEntry(_Entry entry) async {
     final removed = await _removeAlbumPhoto(context, entry);
@@ -601,7 +601,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
     await _reloadLedger();
   }
 
-  // —— 手动写入地理标识（查看器点选地图位置）——
+  // 手动写入地理标识（查看器里点选地图位置）
   /// 把选定的经纬度写入照片（攻略照片 / 相册账本照片），成功后回到地图
   Future<void> _applyGeo(_Entry entry, LatLng loc) async {
     final ok = await _writeGeoToEntry(context, entry, loc);
@@ -616,7 +616,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
     }
   }
 
-  // —— 汇聚视图 ——
+  // 汇聚视图
   /// 统一视图（含被手动隐藏的照片：过滤发生在 _collect，地图/查看器均适用）
   List<_Entry> _collect() {
     final guides = context.read<GuidesProvider>().guides;
@@ -657,7 +657,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
     ));
   }
 
-  // —— 视口动态加载 ——
+  // 视口动态加载
   /// 相机事件 → 重算视口内照片（集合未变时不 setState，避免拖动中闪跳）
   void _onMapEvent(MapEvent event) {
     if (!_mapReady) return;
@@ -842,7 +842,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
   }
 
   LatLng _initialCenter(List<_Entry> located) {
-    // **默认打开中国全境**——不再以定位照片均值做初始中心
+    // 默认打开中国全境，不再拿定位照片的均值做初始中心
     // （照片群均值会直接怼到街道级视野）。进入后可用「聚焦全部」按钮
     // 一键落到照片群；用户定位授权时的自动回位逻辑不受影响。
     return const LatLng(35.0, 104.05); // 中国全境几何中心
@@ -902,7 +902,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
       (groups[key] ??= []).add(e);
     }
     final markers = <Marker>[];
-    // 锁死配套两道：
+    // 配对校验有两道：
     // 格键升序产出——同一缩放档位下标记集合与顺序可重现，缩放重排时同条目倾向命中同一槽位；
     // 条目 child 自带 uid+配对数据键——State 被串到别的条目的可能性归零。
     final groupKeys = groups.keys.toList()..sort();
@@ -919,7 +919,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
           width: 50,
           height: 50,
           child: _MapThumb(
-            // 数据身份键：缩放重排后条目↔缩略配对按数据锁死
+            // 数据身份键：缩放重排后条目和缩略配对仍按数据匹配
             key: ValueKey(thumbBindingKey(e.uid, e.rel)),
             entry: e,
             onTap: () => _openViewer(
@@ -949,7 +949,7 @@ class _PhotoWallGalleryPageState extends State<PhotoWallGalleryPage> {
   }
 }
 
-/// —— 地图缩略图 ———
+/// 地图缩略图
 class _MapThumb extends StatefulWidget {
   const _MapThumb({super.key, required this.entry, required this.onTap});
 
@@ -973,8 +973,8 @@ class _MapThumbState extends State<_MapThumb> {
   void didUpdateWidget(covariant _MapThumb oldWidget) {
     super.didUpdateWidget(oldWidget);
     final o = oldWidget.entry, n = widget.entry;
-    // 锁死：缩放/重排导致 State 复用到别的条目时，
-    // 绑定变化即按**新条目自带配对**重读——不同缩放档位缩略主观测问题根治点
+    // 缩放/重排导致 State 复用到别的条目时，
+    // 绑定一变就按新条目自带配对重读，不同缩放档的缩略图不会再串。
     if (o.uid != n.uid || o.rel != n.rel || o.fullRel != n.fullRel) {
       _bytes = null;
       _load();
@@ -989,7 +989,7 @@ class _MapThumbState extends State<_MapThumb> {
         return;
       }
     }
-    // 视频条目：原件绝对不当图片解码（Invalid image data 防线）；缺缩略走占位
+    // 视频条目：原件不当图片解码（Invalid image data 防线）；缺缩略走占位
     if (widget.entry.isVideo) return;
     if (widget.entry.fullRel.isNotEmpty &&
         widget.entry.fullRel != widget.entry.rel) {
@@ -1094,7 +1094,7 @@ class _BaseTileState extends State<_BaseTile> {
   }
 }
 
-/// —— 数量气泡（低缩放聚合）———
+/// 数量气泡（低缩放时聚合）
 class _ClusterBubble extends StatelessWidget {
   const _ClusterBubble({required this.count, required this.onTap});
 
@@ -1131,7 +1131,7 @@ class _ClusterBubble extends StatelessWidget {
   }
 }
 
-/// —— 固定层提示（pill）———
+/// 固定层提示（pill）
 class _Notice extends StatelessWidget {
   const _Notice({required this.text});
 
@@ -1159,7 +1159,7 @@ class _Notice extends StatelessWidget {
   }
 }
 
-/// —— 地图控制按钮 ———
+/// 地图控制按钮
 class _MapFab extends StatelessWidget {
   const _MapFab({required this.icon, required this.onTap});
 
@@ -1185,7 +1185,7 @@ class _MapFab extends StatelessWidget {
   }
 }
 
-/// —— 相册库（全部照片清单：GPS 状态 + 地图显示开关）———
+/// 相册库（全部照片清单：GPS 状态 + 地图显示开关）
 class _AlbumLibraryPage extends StatefulWidget {
   const _AlbumLibraryPage();
 
@@ -1263,8 +1263,8 @@ class _AlbumLibraryPageState extends State<_AlbumLibraryPage> {
     return n > 0 ? LatLng(la / n, lo / n) : null;
   }
 
-  /// 已定位条目**修改地理定位**（相册库行长按弹层进入）：选点地图**以该条
-  /// 原定位为中心打开**（正在看的城市不再跳走），确认后覆盖原值并重算归属
+  /// 已定位条目改地理定位（相册库行长按弹层进入）：选点地图以该条
+  /// 原定位为中心打开（正在看的城市不跳走），确认后覆盖原值并重算归属
   Future<void> _editGeo(_Entry e) async {
     final picked = await Navigator.of(context).push<LatLng>(
       MaterialPageRoute(
@@ -1320,7 +1320,7 @@ class _AlbumLibraryPageState extends State<_AlbumLibraryPage> {
   }
 
   /// 行级「剔除」：从相册显示项移除（相册库列表 / 地理相册地图 / 查看器），
-  /// **不删除原始文件**；SnackBar 提供「撤销」，后续恢复走「管理已剔除」。
+  /// 不删原始文件；SnackBar 提供「撤销」，之后恢复走「管理已剔除」。
   Future<void> _remove(_Entry e) async {
     await _toggle(e, false);
     if (!mounted) return;
@@ -1422,7 +1422,7 @@ class _AlbumLibraryPageState extends State<_AlbumLibraryPage> {
                     final e = rows[index];
                     return _AlbumRow(
                       // 数据身份键：uid+锁定缩略配对——条目挪位/新条目
-                      // 插顶绝不复用他人 State 缓存（缩略串绑根治点之一）
+                      // 插顶不会复用别人的 State 缓存
                       key: ValueKey(thumbBindingKey(e.uid, e.rel)),
                       entry: e,
                       sourceLabel: _sourceLabel(e, t),
@@ -1438,7 +1438,7 @@ class _AlbumLibraryPageState extends State<_AlbumLibraryPage> {
 }
 
 /// 相册库行：缩略图 + 名称/时间/来源 + GPS 状态 + 剔除（点行进入查看）
-/// **长按已定位行 → 下方弹层「修改地理定位」**（视频已定位同样适用）：
+/// 长按已定位行 → 下方弹层「修改地理定位」（已定位的视频也一样）：
 /// 进入与补位同一选点地图重选，新选点直接覆盖原定位。
 /// 行尾「剔除」= 从相册显示项移除（原文件保留），恢复走 AppBar「管理已剔除」。
 class _AlbumRow extends StatefulWidget {
@@ -1476,8 +1476,8 @@ class _AlbumRowState extends State<_AlbumRow> {
   void didUpdateWidget(covariant _AlbumRow oldWidget) {
     super.didUpdateWidget(oldWidget);
     final o = oldWidget.entry, n = widget.entry;
-    // 锁死：即便 State 被意外复用到别的条目（键缺位兜底），
-    // 数据绑定一经变化即按**新条目自带配对**重读，绝不沿用旧缓存
+    // 兜底：即便 State 被意外复用到别的条目（键缺位时），
+    // 数据绑定一变就按新条目自带配对重读，不会沿用旧缓存
     if (o.uid != n.uid || o.rel != n.rel || o.fullRel != n.fullRel) {
       _bytes = null;
       _load();
@@ -1492,7 +1492,7 @@ class _AlbumRowState extends State<_AlbumRow> {
         return;
       }
     }
-    // 视频：只显示首帧缩略；原件字节不进内存（播放走文件路径，S2）
+    // 视频：只显示首帧缩略；原件字节不进内存（播放走文件路径）
     if (widget.entry.isVideo) return;
     if (widget.entry.fullRel.isNotEmpty) {
       final f = await MediaStore.load(widget.entry.fullRel);
@@ -1580,7 +1580,7 @@ class _AlbumRowState extends State<_AlbumRow> {
     final t = AppLocalizations.of(context);
     final e = widget.entry;
     final t0 = e.point.takenAt;
-    // 行标题：照片 = 拍摄时间；视频 = 「时间 · 视频 · 时长」（原先视频行只有「视频 · 时长」，拍摄时间被顶掉，与照片行信息不对称）。
+    // 行标题：照片 = 拍摄时间；视频 = 「时间 · 视频 · 时长」
     final title = e.isVideo
         ? '${_fmtTime(t0)} · ${t.videoRowTitle(e.durationMs > 0 ? ' · ${(e.durationMs / 60000).floor()}:${(e.durationMs % 60000 ~/ 1000).toString().padLeft(2, '0')}' : '')}'
         : _fmtTime(t0);
@@ -1665,7 +1665,7 @@ class _AlbumRowState extends State<_AlbumRow> {
   }
 }
 
-/// —— 已剔除条目管理面板（恢复显示；不删除原文件）———
+/// 已剔除条目管理面板（恢复显示；不删原文件）
 class _RemovedSheet extends StatelessWidget {
   const _RemovedSheet({
     required this.removed,
@@ -1764,7 +1764,7 @@ class _RemovedRowState extends State<_RemovedRow> {
   void didUpdateWidget(covariant _RemovedRow oldWidget) {
     super.didUpdateWidget(oldWidget);
     final o = oldWidget.entry, n = widget.entry;
-    // 锁死：同 _AlbumRow / _MapThumb——绑定变化即重读
+    // 同 _AlbumRow / _MapThumb：绑定一变就重读
     if (o.uid != n.uid || o.rel != n.rel || o.fullRel != n.fullRel) {
       _bytes = null;
       _load();
@@ -1837,7 +1837,7 @@ class _RemovedRowState extends State<_RemovedRow> {
   }
 }
 
-/// —— 精选加入确认面板（逐张勾选）———
+/// 精选加入确认面板（逐张勾选）
 class _CurateSheet extends StatefulWidget {
   const _CurateSheet({required this.payloads});
 
@@ -1920,7 +1920,7 @@ class _CurateSheetState extends State<_CurateSheet> {
   }
 }
 
-/// —— 全黑虚拟空间查看（翻页 + 剔除 + 补地理标识）———
+/// 全黑虚拟空间查看（翻页 + 剔除 + 补地理标识）
 class _WallViewerPage extends StatefulWidget {
   const _WallViewerPage({
     required this.entries,
@@ -1964,7 +1964,7 @@ class _WallViewerPageState extends State<_WallViewerPage> {
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
   /// 无地理标识照片=补写（首次定位，打开中心=当前定位/全库均值）/
-  /// 已定位=修改（打开中心=**该条原定位**）：打开点选地图 → 确认 → 返回上级
+  /// 已定位=修改（打开中心就是该条原定位）：打开点选地图 → 确认 → 返回上级
   /// （刷新后可见新落点；原有定位被新选点直接覆盖）
   Future<void> _geoFlow(_Entry e) async {
     // 预捕获导航器：写入后无需再触碰跨异步的 context
@@ -2038,7 +2038,7 @@ class _WallViewerPageState extends State<_WallViewerPage> {
   }
 }
 
-/// —— 全黑虚拟空间查看卡片 ———
+/// 全黑虚拟空间查看卡片
 /// 视频小 ▶ 角标（查看器/行卡共用）
 class _VideoMiniBadge extends StatelessWidget {
   const _VideoMiniBadge();
@@ -2073,7 +2073,7 @@ class _BlackCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    // 视频条目：**不加载视频原件字节**（大文件会撑爆内存）——
+    // 视频条目：不加载视频原件字节（大文件会撑爆内存）——
     // 只显示首帧缩略 + ▶ 角标/时长；播放页在后面接入。geo 补位流程同照片。
     final rel = entry.isVideo && entry.rel.isNotEmpty
         ? entry.rel
@@ -2238,7 +2238,7 @@ class _BlackCard extends StatelessWidget {
   }
 }
 
-/// —— 地理标识点选页：缩放找位、点击落点、底部经纬度 + 确认 ———
+/// 地理标识点选页：缩放找位、点击落点、底部经纬度 + 确认
 class _GeoPickPage extends StatefulWidget {
   const _GeoPickPage({required this.initCenter});
 

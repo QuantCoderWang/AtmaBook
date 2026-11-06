@@ -11,7 +11,7 @@ class ExifData {
   bool get hasLocation => lat != null && lng != null;
 }
 
-/// 纯 Dart JPEG EXIF 白名单解析（M6-02，无第三方依赖）：
+/// 纯 Dart JPEG EXIF 白名单解析（无第三方依赖）：
 /// 只读取 APP1 → TIFF → GPS 子 IFD（0x8825）的
 /// #1/#2 纬度、#3/#4 经度，以及 Exif 子 IFD（0x8769）的
 /// #0x9003 DateTimeOriginal。其余标签一律忽略，遇到畸形数据返回空结果。

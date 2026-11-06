@@ -15,13 +15,13 @@ import '../widgets/photo_thumb.dart';
 import '../widgets/tooltip_barrier.dart';
 import '../widgets/rel_image.dart';
 
-/// 攻略笔记（**自动生成 · 零新增存储**）：
-/// - 片区 = 攻略聚类结果（无聚类时按攻略覆写/通用设置临时重算，不落库）；
-/// - 顺序 = 住宿→片区中心距离升序（推荐住宿=距片区群质心最近者，默认选中）；
-///   无住宿 = 片区游览点数降序；
-/// - 片区卡：范围标记（半径 km + 覆盖面积 k㎡）→ 景点（必去在前、选去附挂
-///   其后）→ 圈内餐饮/购物推荐（全量）；图文/照片缺失标「暂缺」；
-/// - 所有坐标可点导航（桌面默认高德·公交，见 NavigatorService）。
+/// 攻略笔记（自动生成，不额外占存储）：
+/// 片区来自攻略聚类结果，没有聚类时按攻略覆写或通用设置临时重算，不落库。
+/// 顺序：有住宿按到片区中心的距离升序（推荐住宿默认选中）；
+/// 无住宿按片区游览点数降序。
+/// 片区卡里依次是范围标记、景点（必去在前、选去附挂），
+/// 再是圈内餐饮/购物推荐（全量）；图文或照片缺失标「暂缺」。
+/// 坐标都能点导航（桌面默认高德，公交，见 NavigatorService）。
 class GuideNotesPage extends StatefulWidget {
   const GuideNotesPage({super.key, required this.guide});
 
@@ -122,7 +122,7 @@ class _GuideNotesPageState extends State<GuideNotesPage> {
       ),
       body: Column(
         children: [
-          // —— 总览（写全：区域/游览点/全类别标记数）——
+          // 总览（写全：区域、游览点、全类别标记数）
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
             child: Wrap(
@@ -144,7 +144,7 @@ class _GuideNotesPageState extends State<GuideNotesPage> {
               ],
             ),
           ),
-          // —— 多住宿选择器（推荐住宿默认选中）——
+          // 多住宿选择器（推荐住宿默认选中）
           if (m.hasHotel && m.hotels.length > 1)
             SizedBox(
               height: 46,
@@ -173,7 +173,7 @@ class _GuideNotesPageState extends State<GuideNotesPage> {
                 },
               ),
             ),
-          // —— 片区缺失说明 / 正文 ——
+          // 片区缺失说明 / 正文
           Expanded(
             child: zoneList.isEmpty
                 ? _FlatNotes(model: m, snack: _snack)
@@ -225,7 +225,7 @@ class _OverviewChip extends StatelessWidget {
   }
 }
 
-// ———————————————————— 片区卡 ————————————————————
+// 片区卡
 
 class _ZoneCard extends StatelessWidget {
   const _ZoneCard({
@@ -267,7 +267,7 @@ class _ZoneCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // —— 头部：区域名统一样例「游览区域 N」（单一游览点同为正式编号）——
+            // 头部：区域名统一写作「游览区域 N」（单个游览点也用正式编号）
             Row(
               children: [
                 Container(
@@ -288,7 +288,7 @@ class _ZoneCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 4),
-            // —— 范围标记（半径 + 面积）与起点距离 ——
+            // 范围标记（半径 + 面积）和到起点的距离
             Row(
               children: [
                 const Icon(Icons.radio_button_checked,
@@ -412,7 +412,7 @@ class _PlaceItem extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // —— 缩略图（无照片 → 占位 + 文案）——
+          // 缩略图（无照片就占位 + 文案）
           Column(
             children: [
               ClipRRect(
@@ -458,7 +458,6 @@ class _PlaceItem extends StatelessWidget {
             ],
           ),
           const SizedBox(width: 10),
-          // —— 文案 ——
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -497,7 +496,7 @@ class _PlaceItem extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                // —— 坐标 + 导航（桌面默认使用高德，通行方式：公交）——
+                // 坐标 + 导航（桌面默认高德，公交）
                 Row(
                   children: [
                     Expanded(
@@ -533,7 +532,7 @@ class _PlaceItem extends StatelessWidget {
   }
 }
 
-// ———————————————————— 起点住宿卡 ————————————————————
+// 起点住宿卡
 class _StartHotelCard extends StatelessWidget {
   const _StartHotelCard({required this.hotel, required this.snack});
 
@@ -579,7 +578,7 @@ class _StartHotelCard extends StatelessWidget {
   }
 }
 
-// ———————————————————— 其他推荐（圈外餐饮/购物/交通/其他） ————————————————————
+// 其他推荐（圈外餐饮/购物/交通/其他）
 class _OtherPoiSection extends StatelessWidget {
   const _OtherPoiSection({required this.pois, required this.snack});
 
@@ -645,7 +644,7 @@ class _OtherPoiSection extends StatelessWidget {
   }
 }
 
-// ———————————————————— 无片区平铺视图（无必去点时） ————————————————————
+// 无片区平铺视图（没有必去点时）
 class _FlatNotes extends StatelessWidget {
   const _FlatNotes({required this.model, required this.snack});
 

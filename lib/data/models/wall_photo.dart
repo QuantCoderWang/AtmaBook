@@ -5,7 +5,7 @@ import '../../core/utils/wall_layout.dart';
 /// 照片墙白板库照片/视频：
 /// 全局数据 `data/wall_photos.json`，与各攻略内的 `Guide.photos` 互不影响
 /// （攻略内照片的常规导入路径不变；白板墙在此基础上汇聚展示）。
-/// 视频条目（kind='video'）**只从地理相册插入**：无 EXIF GPS，入册后
+/// 视频条目（kind='video'）只从地理相册插入：没有 EXIF GPS，入册后
 /// 在查看器手动点选地图补写地理位置（同照片补位流程），归属按就近规则。
 class WallPhoto {
   const WallPhoto({
@@ -36,7 +36,7 @@ class WallPhoto {
   final String thumb;
   final String name;
 
-  /// 媒体类型：'photo'（默认，旧数据缺键兼容）/'video'（v7.0，需手动补定位）
+  /// 媒体类型：'photo'（默认，旧数据缺键兼容）/'video'（需手动补定位）
   final String kind;
 
   /// 视频时长（毫秒；照片恒 0）
@@ -45,10 +45,7 @@ class WallPhoto {
   bool get hasGps => lat != null && lng != null;
   bool get isVideo => kind == 'video';
 
-  /// 锁定缩略绑定：本条目**自带**的「文件名↔缩略图名」配对——
-  /// 视频只认首帧缩略（缺首帧返回空串，绝不退化到视频原件路径）；
-  /// 照片缺缩略回退原图。渲染端禁止按位序/index 推断
-  /// （口径唯一定义点见 `core/utils/thumb_binding.dart`）。
+  /// 缩略图配对（规则见 `core/utils/thumb_binding.dart`）
   String get thumbBinding =>
       resolveThumbBinding(isVideo: isVideo, thumb: thumb, file: file);
 
@@ -182,8 +179,6 @@ class WallClusterRecord {
 
 /// 年度照片墙：
 /// 汇聚生成墙时按拍摄年分组快照——当年照片 uid + 各自贴片摆放 + 地理团划分。
-/// 用途：以后做「便于分享的照片墙」可直接按年导出（分享卡/网页/图文），
-/// 无需再依赖生成时的全部照片重算。
 class WallYearRecord {
   const WallYearRecord({
     required this.year,

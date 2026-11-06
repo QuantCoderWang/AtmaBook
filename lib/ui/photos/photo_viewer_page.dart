@@ -63,12 +63,12 @@ class _VideoPreview extends StatelessWidget {
   }
 }
 
-/// 照片大图浏览：
-/// - InteractiveViewer 看原图（缩略图 miss 时也回原图）；
-/// - 顶栏：名称/拍摄时间 · 重命名 / 删除（连文件）；
-/// - 底栏：经纬度 + 绑定标记名 · 更改绑定（未定位照片在此手动绑定）；
-/// - readOnly = 相册账本照片（`w:` 前缀，返回攻略展示）：只看不改——
-///   改名/删除/绑定归地理相册页管理。
+/// 照片大图浏览。
+/// 用 InteractiveViewer 看原图（缩略图 miss 时也回原图）；
+/// 顶栏：名称/拍摄时间、重命名、删除（连文件）；
+/// 底栏：经纬度 + 绑定标记名、更改绑定（未定位照片在这里手动绑定）；
+/// readOnly 用于相册账本照片（`w:` 前缀，返回攻略展示）：
+/// 只能看，改名/删除/绑定都归地理相册页管。
 class PhotoViewerPage extends StatefulWidget {
   const PhotoViewerPage({
     super.key,

@@ -6,11 +6,11 @@ import '../../core/io/storage_adapter.dart';
 import '../../data/models/guide.dart';
 import '../../l10n/app_localizations.dart';
 
-/// 视频播放页（media_kit）：
-/// - 双端硬件解码（Windows libmpv / Android 系统解码栈）；
-/// - 按文件路径流式播放（视频原件不整读内存）；
-/// - 自适应控制条（进度/暂停/音量/全屏由 AdaptiveVideoControls 提供）；
-/// - 播放失败给出明确错误态；退出 dispose 收口释放播放器。
+/// 视频播放页（media_kit）。
+/// Windows 用 libmpv、Android 用系统解码栈，都走硬件解码；
+/// 按文件路径流式播放，原件不整读内存；
+/// 控制条自适应（进度、暂停、音量、全屏由 AdaptiveVideoControls 提供）；
+/// 播放失败有明确的错误态，退出时 dispose 释放播放器。
 class VideoPlayerPage extends StatefulWidget {
   const VideoPlayerPage({
     super.key,

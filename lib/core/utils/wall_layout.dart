@@ -1,14 +1,14 @@
 import 'dart:math' as math;
 
 /// 白板照片墙布局纯函数：
-/// - 地理位置相近的照片聚为一团（贪心算法，簇心距 ≤150m）；
-/// - 团内成员围绕簇心**部分重叠**地随机散布（中心距有下限，不可能完全遮盖）；
-/// - 全部照片随机倾向左/右 0–45° 之间的某一角度；
-/// - 三种贴片尺寸（小/中/大）随机分配给每张照片；
-/// - 簇锚点按时间序摆到白板网格槽（种子抖动，同一输入+seed 完全可复现，
-///   年份滑窗只做子集显隐，不重排）；
-/// - 无定位照片排进剩余空槽（补空位）；
-/// - 数量上限由调用方截断（cap）。
+/// 位置相近的照片聚成一团（贪心，簇心距 ≤150m）；
+/// 团内成员围绕簇心部分重叠地随机散布（中心距有下限，不会完全遮盖）；
+/// 每张照片随机倾向左/右 0–45° 之间的某个角度；
+/// 三种贴片尺寸（小/中/大）随机分配；
+/// 簇锚点按时间序摆到白板网格槽（种子抖动，同一输入+seed 可复现，
+/// 年份滑窗只做子集显隐，不重排）；
+/// 无定位照片排进剩余空槽；
+/// 数量上限由调用方截断（cap）。
 
 /// 布局输入照片点
 class WallPhotoPoint {
@@ -66,7 +66,7 @@ class WallPlacement {
   final double anchorX;
   final double anchorY;
 
-  /// 成员相对锚点的偏移（**视口单位**比例；不随墙板宽度放大 → 团保持紧凑、
+  /// 成员相对锚点的偏移（按视口单位取比例；不随墙板宽度放大，团保持紧凑、
   /// 部分重叠关系在任意墙宽下不变）
   final double offX;
   final double offY;
@@ -94,51 +94,6 @@ class WallLayoutResult {
     }
     return null;
   }
-}
-
-/// —— 简化布局：取消地理聚类 ——
-/// 照片按「砖墙网格 + 种子抖动」确定性摆上白板：
-/// - 随机倾斜（左右 × 0–45°）与三种贴片尺寸保留；
-/// - 相邻贴片用行错位（砖缝）+ 少量视觉单位偏移，观感为满墙照片墙；
-/// - 不做任何地理分团；同输入+seed 完全可复现，年滑窗仍只做显隐。
-WallLayoutResult layoutWallPhotosSimple(
-  List<WallPhotoPoint> photos, {
-  int seed = 20261021,
-}) {
-  final n = photos.length;
-  if (n == 0) return WallLayoutResult(const [], const []);
-
-  final rng = math.Random(seed);
-  final cols = math.max(2, (math.sqrt(n * 1.5)).ceil());
-  final rows = math.max(1, ((n + cols - 1) / cols).ceil());
-
-  final placements = <WallPlacement>[];
-  for (var i = 0; i < n; i++) {
-    final p = photos[i];
-    final col = i % cols;
-    final row = i ~/ cols;
-    // 砖墙错位：奇数行右移半格
-    final brick = row.isOdd ? 0.5 : 0.0;
-    final jx = (rng.nextDouble() - 0.5) * (1 / cols) * 0.35;
-    final jy = (rng.nextDouble() - 0.5) * (1 / rows) * 0.35;
-    final ax = ((col + 0.5 + brick) / cols + jx).clamp(0.04, 0.96);
-    final ay = (((row + 0.5) / rows) + jy).clamp(0.07, 0.93);
-    final mag = rng.nextDouble() * 45;
-    final sign = rng.nextBool() ? -1.0 : 1.0;
-    placements.add(WallPlacement(
-      uid: p.uid,
-      // 简化方案无地理团：groupId 即单张 id 的命名空间（不形成聚合）
-      groupId: 'loose',
-      anchorX: ax,
-      anchorY: ay,
-      offX: ((rng.nextDouble() - 0.5) * 0.05).clamp(-0.03, 0.03),
-      offY: ((rng.nextDouble() - 0.5) * 0.04).clamp(-0.02, 0.02),
-      angleDeg: mag * sign,
-      stackIndex: i,
-      sizeIndex: rng.nextInt(kWallSizeCount),
-    ));
-  }
-  return WallLayoutResult(placements, const []);
 }
 
 /// 主入口：把照片点列表摆上白板
@@ -174,7 +129,7 @@ WallLayoutResult layoutWallPhotos(
     }
   }
 
-  // —— 2. 网格槽规划（簇锚点 + 无定位空槽）——
+  // 2. 网格槽规划（簇锚点 + 无定位空槽）
   final nClusters = clusters.length;
   final nLoose = photos.where((p) => !p.hasGps).length;
   final totalSlots = nClusters + nLoose;
@@ -204,7 +159,7 @@ WallLayoutResult layoutWallPhotos(
     return (0, 0);
   }
 
-  // —— 3. 簇锚点：按时间序摆放到网格 ——
+  // 3. 簇锚点：按时间序摆到网格
   for (final c in clusters) {
     final cell = nextCell();
     final (r, col) = cell;
@@ -223,7 +178,7 @@ WallLayoutResult layoutWallPhotos(
       double dy = 0;
       if (stack > 0) {
         // 环状散开：随机朝向，半径 0.06–0.11（≈半个贴片宽，保证部分重叠）；
-        // 与已放成员中心距 ≥0.06（视口单位），绝不完全遮盖。
+        // 与已放成员中心距 ≥0.06（视口单位），不会完全遮盖。
         var rad = 0.06 + rng.nextDouble() * 0.05;
         var theta = rng.nextDouble() * 2 * math.pi;
         for (var attempt = 0; attempt < 5; attempt++) {
@@ -261,7 +216,7 @@ WallLayoutResult layoutWallPhotos(
     }
   }
 
-  // —— 4. 无定位照片：剩余空槽（补空位），同样随机倾斜+尺寸 ——
+  // 4. 无定位照片：放进剩余空槽，同样随机倾斜 + 尺寸
   for (final p in photos.where((p) => !p.hasGps)) {
     final cell = nextCell();
     final (r, col) = cell;

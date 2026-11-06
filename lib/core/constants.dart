@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'utils/ids.dart';
 
-/// 应用全局颜色
+/// 应用的底色、主色和文字色
 class AppColors {
   static const Color bg = Color(0xFFFAF6EE);
   static const Color primary = Color(0xFF00695C);
@@ -13,7 +13,7 @@ class AppColors {
   static const Color border = Color(0xFFE8E2D6);
 }
 
-/// 调色板：Pin 颜色 / 片区色环 / 照片占位渐变（真图 M6 接入）
+/// 调色板：Pin 颜色、片区色环、照片占位渐变
 class TravelPalette {
   static const List<Color> pinColors = [
     Color(0xFFE53935), Color(0xFFFB8C00), Color(0xFFFDD835), Color(0xFF43A047),
@@ -21,7 +21,7 @@ class TravelPalette {
     Color(0xFFD81B60), Color(0xFF6D4C41), Color(0xFF78909C), Color(0xFF3D2A26),
   ];
 
-  /// 片区聚类色环（M4 算法按簇数均匀取色）
+  /// 片区色环（按簇数均匀取色）
   static const List<Color> zoneColors = [
     Color(0xFFE53935), Color(0xFF1E88E5), Color(0xFF43A047), Color(0xFFFB8C00),
     Color(0xFF8E24AA), Color(0xFF00ACC1), Color(0xFFC2185B), Color(0xFF5D4037),
@@ -37,9 +37,9 @@ class TravelPalette {
   ];
 }
 
-/// 地点分类（预设 6 类 + 分类管理 v8.4 覆盖层 / 自定义分类）：
+/// 地点分类（预设 6 类 + 分类管理覆盖层 / 自定义分类）：
 /// 引用面极广（攻略地图 / 图例 / 标记编辑 / 标记抽屉 / 笔记 / 设置），
-/// 覆盖层做成**静态生效注册表**——全部读取点零改动直达；
+/// 覆盖层做成静态生效的注册表，所有读取点都直接生效；
 /// 覆盖只改 color/icon/image（label 保持翻译语义，词条不动）；
 /// 写入方 = 设置页「分类管理」（AppSettings 持久化到 shared_preferences）。
 class MarkerCategory {
@@ -51,7 +51,7 @@ class MarkerCategory {
   final Color color;
 
   /// 自定义图片图标（MediaStore 相对路径 `pics/icons/i_*.png/jpg`
-  /// 内容哈希去重，可能与其他标记/分类共用，**不清除**）。null = 用内置
+  /// 内容哈希去重，可能与其他标记/分类共用，不清除）。null = 用内置
   /// icon。显示端（PinWidget / CategoryIcon）同名同尺寸圆裁渲染，
   /// 替换不产生大小差。
   final String? image;
@@ -73,7 +73,7 @@ class MarkerCategory {
     scenic, dining, hotel, shopping, transport, other,
   ];
 
-  /// 图标可选池（设置页「图标替换」用；**只允许向尾部追加**，保证已存索引跨版本稳定）
+  /// 图标可选池（设置页「图标替换」用；只往尾部追加，保证已存索引跨版本稳定）
   static const List<IconData> iconPalette = [
     Icons.landscape, // 0（= scenic 默认）
     Icons.restaurant, // 1（= dining 默认）
@@ -105,7 +105,7 @@ class MarkerCategory {
     Color(0xFF3949AB), Color(0xFFD81B60), Color(0xFF6D4C41),
   ];
 
-  // —— 分类管理运行时覆盖层 ——
+  // 分类管理的运行时覆盖层
   // AppSettings 启动恢复 / 设置页写入时同步；静态生效，全部读取点直达。
   // 内置覆盖存「池索引」（iconPalette 含全部出厂图标，索引即 0–5）；
   // iconIndex 越界统一钳回池首位（0=landscape）。
@@ -253,7 +253,7 @@ class MarkerCategory {
 
 /// 默认参数（通过 shared_preferences 持久化）
 class AppDefaults {
-  /// 片区聚类半径（米）——需求确认：默认 5 km，设置页 1–20 km 可调
+  /// 片区聚类半径（米）；设置页 1–20 km 可调
   static const double clusterRadiusMeters = 5000;
 
   /// 最少 2 个点成簇；低于该数量的孤立点各自单独成簇

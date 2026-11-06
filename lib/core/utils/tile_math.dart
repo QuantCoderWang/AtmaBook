@@ -36,7 +36,7 @@ class TileCoord {
   return (x, y);
 }
 
-/// 框选对角两点 + zoom 区间 → 全部瓦片清单（M-05-01）。
+/// 框选对角两点 + zoom 区间 → 全部瓦片清单。
 ///
 /// - [gcjSource]：高德等 GCJ-02 源须先把边界点换算成 GCJ 坐标再取瓦片行列号，
 ///   才能保证「标记所在屏幕位置」与底图内容一致（渲染偏移统一处理）；
@@ -80,10 +80,10 @@ List<TileCoord> enumerateTiles(
   return out;
 }
 
-/// 预估总张数（与 [enumerateTiles] 同口径）
+/// 预估总张数（和 [enumerateTiles] 的范围一致）
 int estimateTilesPrecise(LatLng a, LatLng b, List<int> zooms,
         {bool gcjSource = false}) =>
     enumerateTiles(a, b, zooms, gcjSource: gcjSource).length;
 
-/// 「范围过大致确认」阈值（清单 M5-01 约定 8000）
+/// 「范围过大致确认」阈值（8000）
 const kHugeTileCount = 8000;
